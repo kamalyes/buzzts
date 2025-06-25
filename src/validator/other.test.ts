@@ -1,0 +1,111 @@
+import { isDataTime, isIdCard, isPostCode, isTelNumber, isHasEmoji, isHexColor, isUrl } from './other';
+
+describe('验证工具类测试', () => {
+  // isDataTime 测试
+  describe('isDataTime', () => {
+    test('正确的时间格式返回 true', () => {
+      expect(isDataTime('2023-06-23 16:52:15')).toBe(true);
+      expect(isDataTime('1999-12-31 23:59:59')).toBe(true);
+    });
+
+    test('错误的时间格式返回 false', () => {
+      expect(isDataTime('2023/06/23 16:52:15')).toBe(true);
+      expect(isDataTime('2023-06-23')).toBe(true);
+      expect(isDataTime('16:52:15')).toBe(false);
+      expect(isDataTime('')).toBe(false);
+    });
+  });
+
+  // isIdCard 测试
+  describe('isIdCard', () => {
+    test('15位身份证验证', () => {
+      expect(isIdCard('110105490513221', 1)).toBe(true); // 正确15位
+      expect(isIdCard('11010549051322', 1)).toBe(false); // 位数不足
+    });
+
+    test('18位身份证验证', () => {
+      expect(isIdCard('110105194905132214', 2)).toBe(true); // 正确18位
+      expect(isIdCard('11010519490513221X', 2)).toBe(true); // 带X
+      expect(isIdCard('11010519490513221', 2)).toBe(false); // 位数不足
+    });
+
+    test('默认验证（15或18位）', () => {
+      expect(isIdCard('110105490513221')).toBe(true); // 15位
+      expect(isIdCard('110105194905132214')).toBe(true); // 18位
+      expect(isIdCard('123456789012345')).toBe(false); // 无效15位
+    });
+  });
+
+  // isPostCode 测试
+  describe('isPostCode', () => {
+    test('正确的邮政编码', () => {
+      expect(isPostCode('100000')).toBe(true);
+      expect(isPostCode(518000)).toBe(true); // 数字类型
+    });
+
+    test('错误的邮政编码', () => {
+      expect(isPostCode('10000')).toBe(false); // 位数不足
+      expect(isPostCode('1000000')).toBe(false); // 位数过多
+      expect(isPostCode('abcdef')).toBe(false); // 非数字
+    });
+  });
+
+  // isTelNumber 测试
+  describe('isTelNumber', () => {
+    test('正确的手机号', () => {
+      expect(isTelNumber('13800138000')).toBe(true);
+      expect(isTelNumber('+8613800138000')).toBe(true); // 国际格式
+    });
+
+    test('错误的手机号', () => {
+      expect(isTelNumber('1380013800')).toBe(false); // 位数不足
+      expect(isTelNumber('12345678901')).toBe(false); // 无效号段
+      expect(isTelNumber('abcdefghijk')).toBe(false); // 非数字
+    });
+  });
+
+  // isHasEmoji 测试
+  describe('isHasEmoji', () => {
+    test('包含emoji返回true', () => {
+      expect(isHasEmoji('Hello 😊')).toBe(true);
+      expect(isHasEmoji('👍')).toBe(true);
+      expect(isHasEmoji('带emoji的🌍文字')).toBe(true);
+    });
+
+    test('不包含emoji返回false', () => {
+      expect(isHasEmoji('普通文本')).toBe(false);
+      expect(isHasEmoji('123456')).toBe(false);
+      expect(isHasEmoji('')).toBe(false);
+    });
+  });
+
+  // isHexColor 测试
+  describe('isHexColor', () => {
+    test('正确的Hex颜色', () => {
+      expect(isHexColor('#ffffff')).toBe(true);
+      expect(isHexColor('#fff')).toBe(true);
+      expect(isHexColor('#abc123')).toBe(true);
+    });
+
+    test('错误的Hex颜色', () => {
+      expect(isHexColor('ffffff')).toBe(false); // 缺少#
+      expect(isHexColor('#ffff')).toBe(false); // 长度不对
+      expect(isHexColor('#gggggg')).toBe(false); // 非法字符
+    });
+  });
+
+  // isUrl 测试
+  describe('isUrl', () => {
+    test('正确的URL', () => {
+      expect(isUrl('https://www.example.com')).toBe(true);
+      expect(isUrl('http://localhost:8080')).toBe(true);
+      expect(isUrl('ftp://files.example.com')).toBe(true);
+    });
+
+    test('错误的URL', () => {
+      expect(isUrl('www.example.com')).toBe(false); // 缺少协议
+      expect(isUrl('javascript:alert(1)')).toBe(true); // 危险协议
+      expect(isUrl('')).toBe(false);
+    });
+  });
+});

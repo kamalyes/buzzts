@@ -1,0 +1,70 @@
+import { upperMoney, intToLowerChinese, sumAverage, getDistance } from './uints';
+
+describe('upperMoney', () => {
+  test('转换正数金额', () => {
+    expect(upperMoney(123456789.34)).toBe('壹亿贰仟叁佰肆拾伍万陆仟柒佰捌拾玖元叁角肆分');
+  });
+
+  test('转换零', () => {
+    expect(upperMoney(0)).toBe('零元整');
+  });
+
+  test('转换负数分金额', () => {
+    expect(upperMoney(-1001.01)).toBe('负壹仟零壹元壹分');
+  });
+
+  test('转换负数角金额', () => {
+    expect(upperMoney(-1001.1)).toBe('负壹仟零壹元壹角');
+  });
+
+  test('转换无小数金额', () => {
+    expect(upperMoney(1000)).toBe('壹仟元整');
+  });
+});
+
+describe('intToLowerChinese', () => {
+  test('转换普通数字', () => {
+    expect(intToLowerChinese('123456789')).toBe('一亿二千三百四十五万六千七百八十九');
+  });
+
+  test('转换包含零的数字', () => {
+    expect(intToLowerChinese('1002003')).toBe('一百万二千零三');
+  });
+
+  test('转换十位数起始为1的数字', () => {
+    expect(intToLowerChinese('10')).toBe('十');
+    expect(intToLowerChinese('11')).toBe('十一');
+  });
+
+  test('转换零', () => {
+    expect(intToLowerChinese('0')).toBe('零');
+  });
+});
+
+describe('sumAverage', () => {
+  test('计算平均值', () => {
+    expect(sumAverage([1, 2, 3, 4, 5])).toBe(3);
+  });
+
+  test('空数组返回NaN', () => {
+    expect(sumAverage([])).toBeNaN();
+  });
+
+  test('包含负数', () => {
+    expect(sumAverage([-1, 0, 1])).toBe(0);
+  });
+});
+
+describe('getDistance', () => {
+  test('计算两点距离', () => {
+    expect(getDistance({ x: 1, y: 2 }, { x: 4, y: 6 })).toBeCloseTo(5);
+  });
+
+  test('相同点距离为0', () => {
+    expect(getDistance({ x: 0, y: 0 }, { x: 0, y: 0 })).toBe(0);
+  });
+
+  test('负坐标点', () => {
+    expect(getDistance({ x: -1, y: -2 }, { x: 3, y: 2 })).toBeCloseTo(5.6569, 4);
+  });
+});
