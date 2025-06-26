@@ -1,4 +1,4 @@
-import { randString, randStringSlice } from './string';
+import { randString, randStringSlice, randEmail } from './string';
 import { RandType } from './types';
 
 describe('randString', () => {
@@ -35,5 +35,36 @@ describe('randStringSlice', () => {
 
   it('count为0时返回空数组', () => {
     expect(randStringSlice(0, 5, RandType.CAPITAL)).toEqual([]);
+  });
+});
+
+describe('randEmail', () => {
+  test('生成邮箱默认域名是example.com', () => {
+    const email = randEmail();
+    expect(email.endsWith('@example.com')).toBe(true);
+  });
+
+  test('生成邮箱自定义域名生效', () => {
+    const domain = 'gmail.com';
+    const email = randEmail(domain);
+    expect(email.endsWith(`@${domain}`)).toBe(true);
+  });
+
+  test('用户名长度在5到12之间', () => {
+    for (let i = 0; i < 100; i++) {
+      const email = randEmail();
+      const username = email.split('@')[0];
+      expect(username.length).toBeGreaterThanOrEqual(5);
+      expect(username.length).toBeLessThanOrEqual(12);
+    }
+  });
+
+  test('用户名只包含小写字母', () => {
+    const lowercaseRegex = /^[a-z]+$/;
+    for (let i = 0; i < 100; i++) {
+      const email = randEmail();
+      const username = email.split('@')[0];
+      expect(lowercaseRegex.test(username)).toBe(true);
+    }
   });
 });

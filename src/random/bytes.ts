@@ -1,4 +1,4 @@
-import { randInt } from './int';
+import { randInt } from './number';
 import { DEC_BYTES, HEX_BYTES } from './ascii';
 
 /**

@@ -1,6 +1,6 @@
 import { RandType } from './types';
 import { initASCII, matchCapital, matchLowercase, matchNumber, matchSpecial } from './ascii';
-import { randInt } from './int';
+import { randInt } from './number';
 
 /**
  * @func randString
@@ -45,4 +45,16 @@ export function randStringSlice(count: number, len: number, mode: RandType): str
     arr.push(randString(len, mode));
   }
   return arr;
+}
+
+/**
+ * @func randEmail
+ * @param {string} [domain="example.com"] - 邮箱域名
+ * @return {string} 随机邮箱地址
+ * @example randEmail("gmail.com") // "x7k2p9@gmail.com"
+ * @desc   生成随机邮箱，用户名部分为随机字符串
+ */
+export function randEmail(domain = 'example.com') {
+  const username = randString(randInt(5, 12), RandType.LOWERCASE);
+  return `${username}@${domain}`;
 }

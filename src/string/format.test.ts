@@ -6,6 +6,7 @@ import {
   capitalizeFirstLetter,
   maskPhoneNumber,
   truncateText,
+  maskString,
 } from './format';
 
 describe('命名风格转换工具', () => {
@@ -127,37 +128,60 @@ describe('字符串工具函数测试套件', () => {
       // 最小加密长度
       expect(maskPhoneNumber('13812345678', { maskLength: 0 })).toBe('13812345678');
       // 超长加密（超过手机号剩余位数）
-      expect(maskPhoneNumber('13812345678', { maskLength: 10 })).toBe('138********');
+      expect(maskPhoneNumber('13812345678', { maskLength: 10 })).toBe('138*******8');
     });
   });
 
-  // ==================== truncateText 测试 ====================
-  describe('truncateText() - 智能截断字符串', () => {
-    it('应截断超长文本并添加省略号', () => {
-      expect(truncateText('Hello world', 5)).toBe('Hello...');
-      expect(truncateText('Hello world', 8)).toBe('Hello...');
+  describe('truncateText', () => {
+    test('长度小于截断长度，返回完整字符串', () => {
+      expect(truncateText('Hello', 10)).toBe('Hello');
+      expect(truncateText('你好', 3)).toBe('你好');
+      expect(truncateText('🙂🙃', 5)).toBe('🙂🙃');
     });
 
-    it('应支持关闭单词保持功能', () => {
-      expect(truncateText('Hello world', 6, { keepWords: false })).toBe('Hello ...');
-      expect(truncateText('Hello world', 3, { keepWords: false })).toBe('Hel...');
+    test('长度等于截断长度，返回完整字符串', () => {
+      expect(truncateText('Hello', 5)).toBe('Hello');
     });
 
-    it('应处理空字符串或短文本', () => {
-      expect(truncateText('', 10)).toBe('');
-      expect(truncateText('Hi', 10)).toBe('Hi');
+    test('长度大于截断长度，截断后加省略号', () => {
+      expect(truncateText('Hello world', 7)).toBe('Hello w...');
+      expect(truncateText('你好，世界！', 5)).toBe('你好，世界...');
     });
 
-    it('应支持自定义省略符号', () => {
-      expect(truncateText('Hello world', 5, { ellipsis: '###' })).toBe('Hello###');
+    test('截断长度小于等于省略号长度，返回完整字符串', () => {
+      expect(truncateText('Hello world', 3)).toBe('Hello world');
+      expect(truncateText('Hello world', 2)).toBe('Hello world');
     });
 
-    it('应正确处理无空格文本', () => {
-      expect(truncateText('abcdefghijk', 5)).toBe('abcde...');
+    test('自定义省略号', () => {
+      expect(truncateText('Hello world', 7, { ellipsis: '..' })).toBe('Hello w..');
+      expect(truncateText('Hello world', 7, { ellipsis: '~~~' })).toBe('Hello w~~~');
     });
+  });
+});
 
-    it('应处理Unicode字符', () => {
-      expect(truncateText('你好世界', 2)).toBe('你好...');
-    });
+describe('maskString', () => {
+  test('默认参数掩码手机号', () => {
+    expect(maskString('13812345678')).toBe('138****5678');
+  });
+
+  test('自定义前后保留和掩码字符', () => {
+    expect(maskString('abcdefg', { prefixLength: 2, suffixLength: 2, maskChar: '#' })).toBe('ab###fg');
+  });
+
+  test('字符串过短不掩码', () => {
+    expect(maskString('abc', { prefixLength: 2, suffixLength: 2 })).toBe('abc');
+    expect(maskString('abcd', { prefixLength: 2, suffixLength: 2 })).toBe('abcd');
+  });
+
+  test('掩码字符为数字或特殊字符', () => {
+    expect(maskString('abcdefghij', { maskChar: '1' })).toBe('abc111ghij');
+    expect(maskString('abcdefghij', { maskChar: '$', prefixLength: 1, suffixLength: 1 })).toBe('a$$$$$$$$j');
+  });
+
+  test('非字符串输入自动转字符串', () => {
+    expect(maskString('1234567890')).toBe('123***7890');
+    expect(maskString(null as any)).toBe('null');
+    expect(maskString(undefined as any)).toBe('und**ined');
   });
 });

@@ -1,6 +1,5 @@
 import { nanoid, customAlphabet } from './nanoid';
-
-const alphabet = 'abc123';
+import { ALPHA_BYTES } from './ascii';
 
 describe('nanoid', () => {
   it('默认长度21', () => {
@@ -11,12 +10,14 @@ describe('nanoid', () => {
   it('生成的字符均在默认字母表内', () => {
     const id = nanoid();
     for (const ch of id) {
-      expect('useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict').toContain(ch);
+      expect(ALPHA_BYTES).toContain(ch);
     }
   });
 });
 
 describe('customAlphabet', () => {
+  const alphabet = 'abc123';
+
   it('生成指定长度的ID', () => {
     const size = 10;
     const gen = customAlphabet(alphabet, size);

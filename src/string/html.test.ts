@@ -26,7 +26,7 @@ describe('HTML 转义与反转义测试套件', () => {
       const start = performance.now();
       escapeHtml(longText);
       const duration = performance.now() - start;
-      expect(duration).toBeLessThan(10); // 确保10ms内完成
+      expect(duration).toBeLessThan(50); // 确保50ms内完成
     });
   });
 

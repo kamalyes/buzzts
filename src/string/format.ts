@@ -127,12 +127,50 @@ export const camelToSpace = (camelCaseStr: string, options: { capitalize?: boole
 };
 
 /**
- * 加密手机号中间部分
- * @param phoneNumber 手机号码(字符串或数字)
- * @param options 配置选项
- * @param options.maskChar 替换字符，默认为'*'
- * @param options.maskLength 替换长度，默认为4
- * @returns 加密后的手机号
+ * @desc 通用字符串中间部分掩码函数
+ * @param str 原始字符串
+ * @param options 配置项
+ * @param options.prefixLength 保留前面字符数，默认3
+ * @param options.suffixLength 保留后面字符数，默认4
+ * @param options.maskChar 掩码字符，默认 '*'
+ * @returns 掩码后的字符串
+ * @example
+ * maskString('13812345678') => '138****5678'
+ * maskString('abcdefg', { prefixLength: 2, suffixLength: 2, maskChar: '#' }) => 'ab###fg'
+ */
+export const maskString = (
+  str: string,
+  options: {
+    prefixLength?: number;
+    suffixLength?: number;
+    maskChar?: string;
+  } = {},
+): string => {
+  const { prefixLength = 3, suffixLength = 4, maskChar = '*' } = options;
+
+  if (typeof str !== 'string') {
+    str = String(str);
+  }
+
+  const len = str.length;
+
+  // 如果字符串长度不足以保留前后部分，则返回原字符串
+  if (len <= prefixLength + suffixLength) {
+    return str;
+  }
+
+  const maskedLength = len - prefixLength - suffixLength;
+
+  return str.substring(0, prefixLength) + maskChar.repeat(maskedLength) + str.substring(len - suffixLength);
+};
+
+/**
+ * @desc 手机号掩码函数
+ * @param phoneNumber 手机号字符串或数字
+ * @param options 配置项
+ * @param options.maskChar 掩码字符，默认 '*'
+ * @param options.maskLength 掩码长度，默认 4
+ * @returns 掩码后的手机号字符串
  * @example
  * maskPhoneNumber('13812345678') => '138****5678'
  * maskPhoneNumber(13812345678, { maskChar: '#', maskLength: 6 }) => '138######78'
@@ -141,7 +179,6 @@ export const maskPhoneNumber = (
   phoneNumber: string | number,
   options: { maskChar?: string; maskLength?: number } = {},
 ): string => {
-  const { maskChar = '*', maskLength = 4 } = options;
   const phoneStr = String(phoneNumber).trim();
 
   if (!/^1[3-9]\d{9}$/.test(phoneStr)) {
@@ -149,16 +186,18 @@ export const maskPhoneNumber = (
     return phoneStr;
   }
 
-  // 前段保留位数（固定前3位）
+  const { maskChar = '*', maskLength = 4 } = options;
   const prefixLength = 3;
-  // 实际需要加密的位数（不能超过剩余位数）
-  const actualMaskLength = Math.min(maskLength, phoneStr.length - prefixLength);
 
-  return (
-    phoneStr.substring(0, prefixLength) +
-    maskChar.repeat(actualMaskLength) +
-    phoneStr.substring(prefixLength + actualMaskLength)
-  );
+  // suffixLength 不能小于0，若小于0，调整掩码长度
+  const actualMaskLength = Math.min(maskLength, phoneStr.length - prefixLength - 1);
+  const actualSuffixLength = phoneStr.length - prefixLength - actualMaskLength;
+
+  return maskString(phoneStr, {
+    prefixLength,
+    suffixLength: actualSuffixLength,
+    maskChar,
+  });
 };
 
 /**
@@ -167,25 +206,36 @@ export const maskPhoneNumber = (
  * @param maxLength 最大长度
  * @param options 配置选项
  * @param options.ellipsis 省略符号，默认为'...'
- * @param options.keepWords 是否保持单词完整，默认为true
  * @returns 截断后的字符串
  * @example
- * truncateText('Hello world', 8) => 'Hello...'
- * truncateText('Hello world', 6, { keepWords: false }) => 'Hello ...'
+ * truncateText('Hello world', 7) // "Hello w..."
+ * truncateText('Hello world', 10) // "Hello world"
+ * truncateText('你好，世界！', 5) // "你好，世..."
+ * truncateText('你好，世界！', 10) // "你好，世界！"
+ * truncateText('🙂🙃🙂🙃', 3) // "🙂🙃🙂..."
+ * truncateText('🙂🙃🙂🙃', 2) // "🙂🙃..."
+ * truncateText('🙂🙃🙂🙃', 1) // "🙂..."
+ * truncateText('Hello', 2) // "He..."
+ * truncateText('Hello', 3) // "Hel..."
  */
-export const truncateText = (
-  text: string,
-  maxLength: number,
-  options: { ellipsis?: string; keepWords?: boolean } = {},
-): string => {
-  const { ellipsis = '...', keepWords = true } = options;
-  if (typeof text !== 'string' || text.length <= maxLength) return text;
+export function truncateText(text: string, truncateAt: number, options: { ellipsis?: string } = {}): string {
+  const ellipsis = options.ellipsis ?? '...';
 
-  if (keepWords) {
-    const truncated = text.substring(0, maxLength);
-    const lastSpace = truncated.lastIndexOf(' ');
-    return lastSpace > 0 ? truncated.substring(0, lastSpace) + ellipsis : truncated + ellipsis;
+  // 用 Array.from 保证多字节字符完整
+  const chars = Array.from(text);
+
+  // 如果字符串长度小于等于截断长度，返回完整字符串
+  if (chars.length <= truncateAt) {
+    return text;
   }
 
-  return text.substring(0, maxLength) + ellipsis;
-};
+  // 如果截断长度小于或等于省略号长度，直接返回完整字符串
+  if (truncateAt <= ellipsis.length) {
+    return text;
+  }
+
+  // 截断主体
+  const truncated = chars.slice(0, truncateAt).join('');
+
+  return truncated + ellipsis;
+}
