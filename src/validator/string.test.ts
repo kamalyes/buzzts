@@ -7,13 +7,11 @@ import {
   isNumberEnUnderscores,
   isIsContainSpecialCharacter,
   isEmail,
-  isChinesePhoneNumber,
   isChineseIDCardNumber,
   isContainChineseCharacter,
   isDoubleByte,
   isEmptyLine,
   isHex,
-  matchNumberWithLength,
   isChines,
 } from './string';
 
@@ -79,12 +77,6 @@ describe('验证工具类测试', () => {
       expect(isEmail('invalid.email@')).toBe(false);
     });
 
-    test('isChinesePhoneNumber - 中国手机号', () => {
-      expect(isChinesePhoneNumber('13800138000')).toBe(true);
-      expect(isChinesePhoneNumber('+8613800138000')).toBe(true);
-      expect(isChinesePhoneNumber('12345678901')).toBe(false);
-    });
-
     test('isChineseIDCardNumber - 中国身份证号', () => {
       // 合法身份证（15位）
       expect(isChineseIDCardNumber('110105490513221')).toBe(false);
@@ -133,12 +125,6 @@ describe('验证工具类测试', () => {
       expect(isHex('1a2b3c')).toBe(true);
       expect(isHex('FFFFFF')).toBe(true);
       expect(isHex('1g2h3i')).toBe(false);
-    });
-
-    test('matchNumberWithLength - 数字长度范围', () => {
-      expect(matchNumberWithLength('12345', 3, 5)).toBe(true);
-      expect(matchNumberWithLength('12', 3, 5)).toBe(false);
-      expect(matchNumberWithLength('123456', 3, 5)).toBe(false);
     });
   });
 });

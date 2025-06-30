@@ -1,135 +1,87 @@
-import { RegexRules } from './rules';
-import { match } from './basic';
-
-/**
- * @func isIntOrFloat
- * @param {string} str - 待校验字符串
- * @return {boolean} 是否是整数或最多两位小数的浮点数
- * @example isIntOrFloat("123.45") // true
- * @desc   校验字符串是否为整数或浮点数（最多两位小数）
- */
-export function isIntOrFloat(str: string): boolean {
-  return match(RegexRules.intOrFloat, str);
+export interface NumberCheckOptions {
+  allowPositiveSign?: boolean; // 是否允许正号 '+', 默认 true
+  allowNegativeSign?: boolean; // 是否允许负号 '-', 默认 true
+  minIntegerLength?: number; // 整数部分最小长度，默认1
+  maxIntegerLength?: number; // 整数部分最大长度，默认不限
+  allowDecimal?: boolean; // 是否允许小数，默认 false
+  minDecimalLength?: number; // 小数部分最小长度，默认0
+  maxDecimalLength?: number; // 小数部分最大长度，默认0
+  allowNoIntegerPart?: boolean; // 是否允许无整数部分（如 .55），默认 false
+  nonZeroStart?: boolean; // 整数部分是否必须非零开头，默认 true
 }
 
 /**
- * @func isPositiveIntOrFloat
+ * @func isNumberWithRules
  * @param {string} str - 待校验字符串
- * @return {boolean} 是否是正数（整数或最多两位小数）
- * @example isPositiveIntOrFloat("123.45") // true
- * @desc   校验字符串是否为正整数或正浮点数（最多两位小数）
+ * @param {NumberCheckOptions} options - 配置项对象
+ * @param {boolean} [options.allowPositiveSign=true] - 是否允许正号 '+'
+ * @param {boolean} [options.allowNegativeSign=true] - 是否允许负号 '-'
+ * @param {number} [options.minIntegerLength=1] - 整数部分最小长度
+ * @param {number} [options.maxIntegerLength] - 整数部分最大长度，默认不限
+ * @param {boolean} [options.allowDecimal=false] - 是否允许小数
+ * @param {number} [options.minDecimalLength=0] - 小数部分最小长度
+ * @param {number} [options.maxDecimalLength=0] - 小数部分最大长度
+ * @param {boolean} [options.allowNoIntegerPart=false] - 是否允许无整数部分（如 .55）
+ * @param {boolean} [options.nonZeroStart=true] - 整数部分是否必须非零开头
+ * @return {boolean} 是否是符合规则的数字字符串（整数或浮点数）
+ * @example
+ *   isNumberWithRules("123", { allowDecimal: false }) // true
+ * @example
+ *   isNumberWithRules("+123.55", { allowDecimal: true, maxDecimalLength: 2 }) // true
+ * @example
+ *   isNumberWithRules(".55", { allowDecimal: true, allowNoIntegerPart: true, maxDecimalLength: 2 }) // true
+ * @example
+ *   isNumberWithRules(".55", { allowDecimal: true, allowNoIntegerPart: false }) // false
+ * @desc 校验字符串是否为符合指定整数和小数位数规则的数字，支持符号、整数长度、小数长度、无整数部分等配置
  */
-export function isPositiveIntOrFloat(str: string): boolean {
-  return match(RegexRules.positiveIntOrFloat, str);
-}
+export function isNumberWithRules(str: string, options: NumberCheckOptions = {}): boolean {
+  const {
+    allowPositiveSign = true,
+    allowNegativeSign = true,
+    minIntegerLength = 1,
+    maxIntegerLength,
+    allowDecimal = false,
+    minDecimalLength = 0,
+    maxDecimalLength,
+    allowNoIntegerPart = false,
+    nonZeroStart = true,
+  } = options;
 
-/**
- * @func isNegativeIntOrFloat
- * @param {string} str - 待校验字符串
- * @return {boolean} 是否是负数（整数或最多两位小数）
- * @example isNegativeIntOrFloat("-123.45") // true
- * @desc   校验字符串是否为负整数或负浮点数（最多两位小数）
- */
-export function isNegativeIntOrFloat(str: string): boolean {
-  return match(RegexRules.negativeIntOrFloat, str);
-}
+  // 简单校验参数合法性
+  if (minIntegerLength < 0 || (maxIntegerLength !== undefined && maxIntegerLength < minIntegerLength))
+    throw new Error('整数部分长度配置错误');
+  if (minDecimalLength < 0 || (maxDecimalLength !== undefined && maxDecimalLength < minDecimalLength))
+    throw new Error('小数部分长度配置错误');
+  if (!allowDecimal && (minDecimalLength > 0 || (maxDecimalLength ?? 0) > 0))
+    throw new Error('不允许小数时，小数位数应为0');
 
-/**
- * @func isLenNNumber
- * @param {string} str - 待校验字符串
- * @param {number} n - 指定长度
- * @return {boolean} 是否为指定长度的数字字符串
- * @example isLenNNumber("1234", 4) // true
- * @desc   校验字符串是否为长度为n的数字
- */
-export function isLenNNumber(str: string, n: number): boolean {
-  const reg = new RegExp(`^\\d{${n}}$`);
-  return match(reg, str);
-}
+  // 1. 符号部分
+  const signChars = [allowPositiveSign ? '\\+' : '', allowNegativeSign ? '-' : ''].filter(Boolean).join('');
+  const signPart = signChars ? `[${signChars}]?` : '';
 
-/**
- * @func isGeNNumber
- * @param {string} str - 待校验字符串
- * @param {number} n - 最小长度
- * @return {boolean} 是否为长度大于等于n的数字字符串
- * @example isGeNNumber("12345", 4) // true
- * @desc   校验字符串是否为长度大于等于n的数字
- */
-export function isGeNNumber(str: string, n: number): boolean {
-  const reg = new RegExp(`^\\d{${n},}$`);
-  return match(reg, str);
-}
+  // 2. 整数部分
+  const intLenRange =
+    maxIntegerLength !== undefined ? `{${minIntegerLength},${maxIntegerLength}}` : `{${minIntegerLength},}`;
+  const integerPart = nonZeroStart
+    ? minIntegerLength === 1 && maxIntegerLength === 1
+      ? '[1-9]'
+      : `[1-9]\\d${
+          maxIntegerLength !== undefined
+            ? `{${Math.max(0, minIntegerLength - 1)},${maxIntegerLength - 1}}`
+            : `{${Math.max(0, minIntegerLength - 1)},}`
+        }`
+    : `\\d${intLenRange}`;
 
-/**
- * @func isMNIntervalNumber
- * @param {string} str - 待校验字符串
- * @param {number} m - 最小长度
- * @param {number} n - 最大长度
- * @return {boolean} 是否为长度在m到n之间的数字字符串
- * @example isMNIntervalNumber("1234", 3, 5) // true
- * @desc   校验字符串是否为长度在m到n之间的数字
- */
-export function isMNIntervalNumber(str: string, m: number, n: number): boolean {
-  const reg = new RegExp(`^\\d{${m},${n}}$`);
-  return match(reg, str);
-}
+  // 3. 小数部分
+  const decimalPart = allowDecimal ? `(\\.\\d{${minDecimalLength},${maxDecimalLength ?? ''}})` : '';
 
-/**
- * @func isStartingWithNonZero
- * @param {string} str - 待校验字符串
- * @return {boolean} 是否以非零数字开头
- * @example isStartingWithNonZero("123") // true
- * @desc   校验字符串是否以非零数字开头
- */
-export function isStartingWithNonZero(str: string): boolean {
-  return match(RegexRules.startingWithNonZero, str);
-}
+  // 4. 主体
+  const mainPart =
+    allowNoIntegerPart && allowDecimal
+      ? `(${integerPart}${decimalPart}|${decimalPart})`
+      : `${integerPart}${decimalPart}`;
 
-/**
- * @func isNNovelsOfRealNumber
- * @param {string} str - 待校验字符串
- * @param {number} n - 小数点后位数
- * @return {boolean} 是否为小数点后恰好n位的小数或整数
- * @example isNNovelsOfRealNumber("123.45", 2) // true
- * @desc   校验小数点后恰好n位小数
- */
-export function isNNovelsOfRealNumber(str: string, n: number): boolean {
-  const reg = new RegExp(`^[0-9]+(\\.[0-9]{${n}})?$`);
-  return match(reg, str);
-}
-
-/**
- * @func isMNNovelsOfRealNumber
- * @param {string} str - 待校验字符串
- * @param {number} m - 小数点后最小位数
- * @param {number} n - 小数点后最大位数
- * @return {boolean} 是否为小数点后位数在m到n之间的小数或整数
- * @example isMNNovelsOfRealNumber("123.456", 2, 3) // true
- * @desc   校验小数点后m到n位小数
- */
-export function isMNNovelsOfRealNumber(str: string, m: number, n: number): boolean {
-  const reg = new RegExp(`^[0-9]+(\\.[0-9]{${m},${n}})?$`);
-  return match(reg, str);
-}
-
-/**
- * @func isNanZeroNumber
- * @param {string} str - 待校验字符串
- * @return {boolean} 是否为正整数且非零
- * @example isNanZeroNumber("123") // true
- * @desc   校验是否为正整数且非零
- */
-export function isNanZeroNumber(str: string): boolean {
-  return match(RegexRules.nonZeroPositiveInt, str);
-}
-
-/**
- * @func isNanZeroNegNumber
- * @param {string} str - 待校验字符串
- * @return {boolean} 是否为负整数且非零
- * @example isNanZeroNegNumber("-123") // true
- * @desc   校验是否为负整数且非零
- */
-export function isNanZeroNegNumber(str: string): boolean {
-  return match(RegexRules.nonZeroNegativeInt, str);
+  // 5. 组合正则
+  const regex = new RegExp(`^${signPart}${mainPart}$`);
+  return regex.test(str);
 }

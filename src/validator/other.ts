@@ -13,24 +13,6 @@ export function isDataTime(str: string): boolean {
 }
 
 /**
- * @func isIdCard
- * @param {string} str 身份证号
- * @param {number} type 1:15位，2:18位，默认0 两者均支持
- * @returns {boolean}
- * @desc 支持第一代15位和第二代18位身份证号校验
- */
-export const isIdCard = (str: string, type: number = 0): boolean => {
-  switch (type) {
-    case 1:
-      return RegexRules.idCard15.test(str);
-    case 2:
-      return RegexRules.idCard18.test(str);
-    default:
-      return RegexRules.idCard.test(str);
-  }
-};
-
-/**
  * @func isPostCode
  * @param {number|string} value
  * @returns {boolean}

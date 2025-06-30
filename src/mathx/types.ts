@@ -121,4 +121,4 @@ typeasy.isPrimitive = (data: unknown): boolean => {
   ].includes(type);
 };
 
-export default typeasy;
+export { typeasy };

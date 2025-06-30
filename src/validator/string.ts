@@ -92,17 +92,6 @@ export function isEmail(str: string): boolean {
 }
 
 /**
- * @func isChinesePhoneNumber
- * @param {string} str - 待校验字符串
- * @return {boolean} 是否符合中国手机号格式
- * @example isChinesePhoneNumber("13800138000") // true
- * @desc   校验字符串是否为合法中国大陆手机号
- */
-export function isChinesePhoneNumber(str: string): boolean {
-  return match(RegexRules.chinesePhoneNumber, str);
-}
-
-/**
  * @func isChineseIDCardNumber
  * @param {string} id - 待校验身份证号
  * @return {boolean} 是否为合法身份证号（15或18位）
@@ -229,20 +218,6 @@ export function isEmptyLine(str: string): boolean {
  */
 export function isHex(str: string): boolean {
   return match(RegexRules.hex, str);
-}
-
-/**
- * @func matchNumberWithLength
- * @param {string} str - 待校验字符串
- * @param {number} min - 最小长度
- * @param {number} max - 最大长度
- * @return {boolean} 是否为指定长度范围内的数字字符串
- * @example matchNumberWithLength("12345", 3, 5) // true
- * @desc   校验字符串是否为数字，长度在min到max之间
- */
-export function matchNumberWithLength(str: string, min: number, max: number): boolean {
-  const reg = new RegExp(`^\\d{${min},${max}}$`);
-  return match(reg, str);
 }
 
 /**

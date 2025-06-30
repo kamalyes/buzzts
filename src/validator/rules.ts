@@ -2,24 +2,15 @@
  * 字符串正则规则集及校验函数
  */
 export const RegexRules = {
-  intOrFloat: /^-?\d+(?:\.\d{1,2})?$/,
-  /** 仅正整数或最多两位小数的正浮点数 */
-  positiveIntOrFloat: /^\d+(?:\.\d{1,2})?$/,
-  /** 仅负整数或最多两位小数的负浮点数 */
-  negativeIntOrFloat: /^-\d+(?:\.\d{1,2})?$/,
   number: /^[0-9]*$/,
-  startingWithNonZero: /^([1-9][0-9]*)$/,
-  nonZeroPositiveInt: /^\+?[1-9][0-9]*$/,
-  nonZeroNegativeInt: /^\-[1-9][0-9]*$/,
   enCharacter: /^[A-Za-z]+$/,
   upperEnCharacter: /^[A-Z]+$/,
   lowerEnCharacter: /^[a-z]+$/,
   enCharDotUnderline: /^[a-zA-Z0-9._]+$/,
   numberEnCharacter: /^[A-Za-z0-9]+$/,
   numberEnUnderscore: /^\w+$/,
-  containSpecialChar: /[!@#\$%\^&\*\(\)_\+\[\]{}|;':",./<>?]/,
+  containSpecialChar: /[^\w\s]/,
   email: /^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/,
-  chinesePhoneNumber: /^(?:\+86)?1[3-9]\d{9}$/,
   chineseIDCardNumber: /^(\d{15}|\d{17}[\dXx])$/,
   containChineseChar: /\p{Script=Han}/u,
   doubleByte: /[^\x00-\xff]/,

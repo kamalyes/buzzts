@@ -1,4 +1,4 @@
-import { isDataTime, isIdCard, isPostCode, isTelNumber, isHasEmoji, isHexColor, isUrl } from './other';
+import { isDataTime, isPostCode, isTelNumber, isHasEmoji, isHexColor, isUrl } from './other';
 
 describe('验证工具类测试', () => {
   // isDataTime 测试
@@ -13,26 +13,6 @@ describe('验证工具类测试', () => {
       expect(isDataTime('2023-06-23')).toBe(true);
       expect(isDataTime('16:52:15')).toBe(false);
       expect(isDataTime('')).toBe(false);
-    });
-  });
-
-  // isIdCard 测试
-  describe('isIdCard', () => {
-    test('15位身份证验证', () => {
-      expect(isIdCard('110105490513221', 1)).toBe(true); // 正确15位
-      expect(isIdCard('11010549051322', 1)).toBe(false); // 位数不足
-    });
-
-    test('18位身份证验证', () => {
-      expect(isIdCard('110105194905132214', 2)).toBe(true); // 正确18位
-      expect(isIdCard('11010519490513221X', 2)).toBe(true); // 带X
-      expect(isIdCard('11010519490513221', 2)).toBe(false); // 位数不足
-    });
-
-    test('默认验证（15或18位）', () => {
-      expect(isIdCard('110105490513221')).toBe(true); // 15位
-      expect(isIdCard('110105194905132214')).toBe(true); // 18位
-      expect(isIdCard('123456789012345')).toBe(false); // 无效15位
     });
   });
 
