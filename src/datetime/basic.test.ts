@@ -15,6 +15,9 @@ import {
   getDayOfWeek,
   getYear,
   getMonth,
+  getDateInfo,
+  getWeekdayCountInMonth,
+  WeekdayCount,
 } from './basic';
 
 describe('日期工具函数测试', () => {
@@ -85,5 +88,130 @@ describe('日期工具函数测试', () => {
 
   test('getMonth 获取月份', () => {
     expect(getMonth('2023-06-23')).toBe(6);
+  });
+});
+
+describe('getDateInfo', () => {
+  test('传入标准日期字符串，自动兼容 iOS', () => {
+    expect(getDateInfo('2023-01-01')).toEqual({
+      year: '2023',
+      month: '01',
+      day: '01',
+      hour: '00',
+      minute: '00',
+      second: '00',
+    });
+  });
+
+  test('传入带时间的字符串', () => {
+    expect(getDateInfo('2023-01-01 15:30:45')).toEqual({
+      year: '2023',
+      month: '01',
+      day: '01',
+      hour: '15',
+      minute: '30',
+      second: '45',
+    });
+  });
+
+  test('传入 Date 对象', () => {
+    const date = new Date(2023, 0, 1, 12, 0, 0);
+    expect(getDateInfo(date)).toEqual({
+      year: '2023',
+      month: '01',
+      day: '01',
+      hour: '12',
+      minute: '00',
+      second: '00',
+    });
+  });
+
+  test('传入时间戳（毫秒）', () => {
+    expect(getDateInfo(1672531200000)).toEqual({
+      year: '2023',
+      month: '01',
+      day: '01',
+      hour: '08',
+      minute: '00',
+      second: '00',
+    });
+  });
+
+  test('不传参数，默认当前时间', () => {
+    const now = new Date();
+    const result = getDateInfo();
+    expect(result.year).toBe(now.getFullYear().toString());
+    expect(result.month).toBe((now.getMonth() + 1).toString().padStart(2, '0'));
+    expect(result.day).toBe(now.getDate().toString().padStart(2, '0'));
+    expect(result.hour).toBe(now.getHours().toString().padStart(2, '0'));
+    expect(result.minute).toBe(now.getMinutes().toString().padStart(2, '0'));
+    expect(result.second).toBe(now.getSeconds().toString().padStart(2, '0'));
+  });
+
+  test('传入无效日期字符串抛出异常', () => {
+    expect(() => getDateInfo('invalid-date-string')).toThrow('Invalid date format');
+  });
+});
+
+describe('getWeekdayCountInMonth with timezone offset', () => {
+  test('counts weekdays correctly in UTC+0', () => {
+    const date = new Date('2025-06-01T00:00:00Z');
+    const timezoneOffset = 0; // UTC+0
+
+    const result = getWeekdayCountInMonth(date, timezoneOffset);
+
+    expect(result).toEqual({
+      sunday: 5,    // 1,8,15,22,29
+      monday: 5,    // 2,9,16,23,30
+      tuesday: 4,   // 3,10,17,24
+      wednesday: 4, // 4,11,18,25
+      thursday: 4,  // 5,12,19,26
+      friday: 4,    // 6,13,20,27
+      saturday: 4,  // 7,14,21,28
+    });
+  });
+
+  test('counts weekdays correctly for June 2023 in UTC+8 (Beijing Time)', () => {
+    const date = new Date('2023-06-15T00:00:00Z');
+    const timezoneOffset = -8 * 60; // UTC+8，注意负号
+
+    const result: WeekdayCount = getWeekdayCountInMonth(date, timezoneOffset);
+
+    // 6月1日北京时间是6月1日凌晨，星期四，结果应和UTC+0相同
+    expect(result).toEqual({
+      sunday: 4,
+      monday: 4,
+      tuesday: 4,
+      wednesday: 4,
+      thursday: 5,
+      friday: 5,
+      saturday: 4,
+    });
+  });
+
+  test('counts weekdays correctly for February 2024 (leap year) in UTC+0', () => {
+    const date = new Date('2024-02-01T00:00:00Z');
+    const timezoneOffset = 0;
+
+    const result = getWeekdayCountInMonth(date, timezoneOffset);
+
+    expect(result).toEqual({
+      sunday: 4,
+      monday: 4,
+      tuesday: 4,
+      wednesday: 4,
+      thursday: 5,
+      friday: 4,
+      saturday: 4,
+    });
+  });
+
+  test('defaults to local timezone offset when not provided', () => {
+    const date = new Date('2023-06-15T00:00:00Z');
+    const result = getWeekdayCountInMonth(date);
+
+    // 只检查属性存在和类型
+    expect(result).toHaveProperty('sunday');
+    expect(typeof result.sunday).toBe('number');
   });
 });

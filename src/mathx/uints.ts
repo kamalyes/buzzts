@@ -186,3 +186,28 @@ export const getDistance = (point1: Point, point2: Point): number => {
   const { x: x2, y: y2 } = point2;
   return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 };
+
+/**
+ * @func getPercentage
+ * @param {number} part - 当前值
+ * @param {number} total - 总值
+ * @param {number} [decimalPlaces=2] - 保留小数位数，默认2位
+ * @returns {string} 百分比字符串，格式如 "50.00%"
+ * @throws {Error} 当任一参数非数字时抛出异常
+ * @desc 计算百分比
+ * @example
+ * getPercentage(1, 2, 2); // 返回 "50.00%"
+ * getPercentage(1, 3);    // 返回 "33.33%"
+ * getPercentage(0, 0);    // 返回 "0.00%"
+ */
+export function getPercentage(part: number, total: number, decimalPlaces: number = 2): string {
+  if (typeof part !== 'number' || typeof total !== 'number' || typeof decimalPlaces !== 'number') {
+    throw new Error('所有参数必须为数字');
+  }
+  if (total === 0) {
+    // 总值为0时，返回0%，避免除以0错误
+    return (0).toFixed(decimalPlaces) + '%';
+  }
+  const percentage = (part / total) * 100;
+  return percentage.toFixed(decimalPlaces) + '%';
+}

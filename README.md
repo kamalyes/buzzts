@@ -6,7 +6,11 @@
     <img src="https://img.shields.io/badge/-ESLint-4b32c3?logo=eslint&logoColor=white" />
     <img src="https://img.shields.io/badge/-Prettier-ef9421?logo=Prettier&logoColor=white" alt="Prettier">
     <img src="https://img.shields.io/badge/license-Apache-blue.svg" alt="Apache"> 
-<p>   
+<p>
+
+## 👀 预览
+
+[查看在线文档](https://buzzts.netlify.app)
 
 # buzzts
 > 我计划在接下来的两周内，使用ChatGPT对该插件进行调整和优化，以解决其性能问题
@@ -22,6 +26,10 @@
 - 🦾基于 TypeScript 开发，类型安全
 - 🌎包含动态插件库，可以随时调用，做随手可得且最全的工具库
 - ⚡️具备更多能力，等你去挖掘....
+- 🧪使用 Jest 进行了测试
+- 📦使用 Rollup 打包
+- 🔧兼容 JavaScript 环境
+- 📐覆盖日常开发的大部分场景,从基础工具到高级功能，一应俱全
 
 # 如何使用
 

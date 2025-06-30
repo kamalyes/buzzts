@@ -1,4 +1,4 @@
-import { upperMoney, intToLowerChinese, sumAverage, getDistance } from './uints';
+import { upperMoney, intToLowerChinese, sumAverage, getDistance, getPercentage } from './uints';
 
 describe('upperMoney', () => {
   test('转换正数金额', () => {
@@ -66,5 +66,31 @@ describe('getDistance', () => {
 
   test('负坐标点', () => {
     expect(getDistance({ x: -1, y: -2 }, { x: 3, y: 2 })).toBeCloseTo(5.6569, 4);
+  });
+});
+
+describe('getPercentage', () => {
+  test('计算正常百分比，指定小数位', () => {
+    expect(getPercentage(1, 2, 2)).toBe('50.00%');
+    expect(getPercentage(1, 3, 3)).toBe('33.333%');
+    expect(getPercentage(5, 4, 1)).toBe('125.0%');
+  });
+
+  test('默认小数位为2', () => {
+    expect(getPercentage(1, 3)).toBe('33.33%');
+  });
+
+  test('total为0时返回0%', () => {
+    expect(getPercentage(0, 0)).toBe('0.00%');
+    expect(getPercentage(1, 0)).toBe('0.00%');
+  });
+
+  test('参数非数字时抛出异常', () => {
+    // @ts-expect-error 故意传入错误类型测试异常
+    expect(() => getPercentage('1', 2, 2)).toThrow('所有参数必须为数字');
+    // @ts-expect-error
+    expect(() => getPercentage(1, '2', 2)).toThrow('所有参数必须为数字');
+    // @ts-expect-error
+    expect(() => getPercentage(1, 2, '2')).toThrow('所有参数必须为数字');
   });
 });

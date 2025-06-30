@@ -246,3 +246,129 @@ export function getMonth(date: DateInput): number | null {
   const d = toDate(date);
   return d ? d.getMonth() + 1 : null;
 }
+
+/**
+ * 日期信息接口
+ */
+export interface DateInfo {
+  year: string;
+  month: string;
+  day: string;
+  hour: string;
+  minute: string;
+  second: string;
+}
+
+/**
+ * 获取日期信息
+ * @param {string | Date | number | undefined} [str] - 日期字符串、Date对象、时间戳（毫秒），可选，不传默认当前时间
+ * @return {DateInfo} 日期信息对象，包含年、月、日、时、分、秒，均为字符串格式，月日小时分钟秒均补零
+ * @throws {Error} 输入无效日期字符串时抛出异常
+ * @example
+ *
+ * getDateInfo("2023-01-01") // 传入标准日期字符串（自动兼容 iOS） { year: '2023', month: '01', day: '01', hour: '00', minute: '00', second: '00' }
+ * getDateInfo("2023-01-01 15:30:45") // 传入带时间的字符串{ year: '2023', month: '01', day: '01', hour: '15', minute: '30', second: '45' }
+ * getDateInfo(new Date(2023, 0, 1, 12, 0, 0)) // 传入 Date 对象  { year: '2023', month: '01', day: '01', hour: '12', minute: '00', second: '00' }
+ * getDateInfo(1672531200000) // 传入时间戳（毫秒）{ year: '2023', month: '01', day: '01', hour: '00', minute: '00', second: '00' }
+ * getDateInfo() // 不传参数，默认当前时间
+ * try { // 传入无效日期字符串会抛出异常
+ *   getDateInfo("invalid-date-string")
+ * } catch (e) {
+ *   console.error(e.message) // Invalid date format
+ * }
+ */
+export function getDateInfo(str?: string | Date | number): DateInfo {
+  let formattedStr = str;
+
+  // 兼容 iOS 解析问题，把 '-' 替换为 '/'
+  if (typeof str === 'string' && str.includes('-')) {
+    formattedStr = str.replace(/-/g, '/');
+  }
+
+  const date = formattedStr ? new Date(formattedStr) : new Date();
+
+  if (isNaN(date.getTime())) {
+    throw new Error('Invalid date format');
+  }
+
+  const pad = (num: number) => num.toString().padStart(2, '0');
+
+  return {
+    year: date.getFullYear().toString(),
+    month: pad(date.getMonth() + 1),
+    day: pad(date.getDate()),
+    hour: pad(date.getHours()),
+    minute: pad(date.getMinutes()),
+    second: pad(date.getSeconds()),
+  };
+}
+
+/**
+ * 表示一周七天的计数对象
+ */
+export interface WeekdayCount {
+  /** 周日的出现次数 */
+  sunday: number;
+  /** 周一的出现次数 */
+  monday: number;
+  /** 周二的出现次数 */
+  tuesday: number;
+  /** 周三的出现次数 */
+  wednesday: number;
+  /** 周四的出现次数 */
+  thursday: number;
+  /** 周五的出现次数 */
+  friday: number;
+  /** 周六的出现次数 */
+  saturday: number;
+}
+
+/**
+ * 计算指定日期所在月份中，每个星期几出现的次数
+ *
+ * @param {Date} [date=new Date()] - 指定日期，默认当前日期
+ * @param {number} timezoneOffset - 时区，默认本地偏移
+ * @returns {WeekdayCount} 返回一个对象，包含该月中每个星期几出现的次数
+ *
+ * @example
+ * const counts = getWeekdayCountInMonth(new Date('2023-06-15'));
+ * console.log(counts.monday);  // 输出该月周一的天数
+ * console.log(counts.sunday);  // 输出该月周日的天数
+ */
+export function getWeekdayCountInMonth(
+  date: Date = new Date(),
+  timezoneOffset: number = date.getTimezoneOffset(), // 默认本地时区偏移
+): WeekdayCount {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+
+  // 获取当月最后一天（UTC）
+  const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+
+  const keys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const;
+  const weekdayCount: WeekdayCount = {
+    sunday: 0,
+    monday: 0,
+    tuesday: 0,
+    wednesday: 0,
+    thursday: 0,
+    friday: 0,
+    saturday: 0,
+  };
+
+  for (let day = 1; day <= lastDay; day++) {
+    // 构造UTC时间日期
+    const utcDate = new Date(Date.UTC(year, month, day));
+
+    // 根据时区偏移调整时间，得到对应时区的时间戳
+    const localTimestamp = utcDate.getTime() - timezoneOffset * 60 * 1000;
+    const localDate = new Date(localTimestamp);
+
+    // 获取对应时区的星期几
+    const weekday = localDate.getUTCDay();
+
+    weekdayCount[keys[weekday]]++;
+  }
+
+  return weekdayCount;
+}

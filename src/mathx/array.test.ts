@@ -5,6 +5,7 @@ import {
   arrayAnyExist,
   arrayAnyExistDeep,
   deepEqual,
+  chunkArray,
 } from './array';
 
 describe('appendFieldByUniqueId', () => {
@@ -234,5 +235,52 @@ describe('deepEqual', () => {
 
   it('-0 和 +0 比较', () => {
     expect(deepEqual(-0, +0)).toBe(true);
+  });
+});
+
+describe('chunkArray', () => {
+  test('正常分块，能均匀分配', () => {
+    const arr = [1, 2, 3, 4, 5, 6];
+    expect(chunkArray(arr, 3)).toEqual([
+      [1, 2],
+      [3, 4],
+      [5, 6],
+    ]);
+  });
+
+  test('不能均匀分配时，前面块多一个元素', () => {
+    const arr = [1, 2, 3, 4, 5, 6, 7];
+    expect(chunkArray(arr, 3)).toEqual([
+      [1, 2, 3],
+      [4, 5],
+      [6, 7],
+    ]);
+  });
+
+  test('chunkCount = 1 时返回整个数组作为一个块', () => {
+    const arr = [1, 2, 3];
+    expect(chunkArray(arr, 1)).toEqual([[1, 2, 3]]);
+  });
+
+  test('chunkCount 大于数组长度时，每个元素单独分块', () => {
+    const arr = [1, 2, 3];
+    expect(chunkArray(arr, 5)).toEqual([[1], [2], [3]]);
+  });
+
+  test('空数组返回空数组', () => {
+    expect(chunkArray([], 3)).toEqual([]);
+  });
+
+  test('chunkCount 非正整数抛错', () => {
+    const arr = [1, 2, 3];
+    expect(() => chunkArray(arr, 0)).toThrow(RangeError);
+    expect(() => chunkArray(arr, -1)).toThrow(RangeError);
+    expect(() => chunkArray(arr, 1.5)).toThrow(RangeError);
+  });
+
+  test('非数组输入抛错', () => {
+    expect(() => chunkArray(null as any, 2)).toThrow(TypeError);
+    expect(() => chunkArray(undefined as any, 2)).toThrow(TypeError);
+    expect(() => chunkArray('string' as any, 2)).toThrow(TypeError);
   });
 });
