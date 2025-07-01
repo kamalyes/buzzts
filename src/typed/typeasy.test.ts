@@ -1,4 +1,4 @@
-import { typeasy } from './types';
+import { typeasy } from './typeasy';
 
 describe('typeasy 类型检测工具', () => {
   test('基础类型检测', () => {

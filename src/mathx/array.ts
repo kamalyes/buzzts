@@ -1,3 +1,4 @@
+import { deepEqual } from '../typed';
 /**
  * @func appendFieldByUniqueId
  * @param {Array} tree - 树形数据数组
@@ -77,91 +78,6 @@ export function arrayAnyExist(source: any[], target: any[]): boolean {
 export function arrayAnyExistDeep(source: any[], target: any[]): boolean {
   if (!Array.isArray(source) || !Array.isArray(target)) return false;
   return target.some(tItem => source.some(sItem => deepEqual(sItem, tItem)));
-}
-
-/**
- * @func deepEqual
- * @param {any} a - 第一个值
- * @param {any} b - 第二个值
- * @returns {boolean} 是否相等
- * @desc 深度比较两个值是否相等
- * @example
- * deepEqual({a:1}, {a:1}); // true
- */
-export function deepEqual(a: any, b: any): boolean {
-  if (a === b) return true;
-  // 支持 NaN 相等
-  if (typeof a === 'number' && typeof b === 'number') {
-    if (Number.isNaN(a) && Number.isNaN(b)) return true;
-  }
-
-  if (a == null || b == null) return a === b;
-
-  if (typeof a !== typeof b) return false;
-
-  if (typeof a !== 'object') return a === b;
-
-  // 比较构造函数，区分不同类实例
-  if (a.constructor !== b.constructor) return false;
-
-  // 处理 Date
-  if (a instanceof Date) {
-    return a.getTime() === b.getTime();
-  }
-
-  // 处理 RegExp
-  if (a instanceof RegExp) {
-    return a.source === b.source && a.flags === b.flags;
-  }
-
-  // 处理 Array
-  if (Array.isArray(a)) {
-    if (a.length !== b.length) return false;
-    for (let i = 0; i < a.length; i++) {
-      if (!deepEqual(a[i], b[i])) return false;
-    }
-    return true;
-  }
-
-  // 处理 Map
-  if (a instanceof Map) {
-    if (a.size !== b.size) return false;
-    for (const [key, val] of a.entries()) {
-      if (!b.has(key)) return false;
-      if (!deepEqual(val, b.get(key))) return false;
-    }
-    return true;
-  }
-
-  // 处理 Set
-  if (a instanceof Set) {
-    if (a.size !== b.size) return false;
-    // 因为 Set 无序，逐个检查 b 是否有 a 的每个元素
-    for (const val of a.values()) {
-      // 这里用 Array.from(b).some 判断是否有相等元素
-      let hasEqual = false;
-      for (const bVal of b.values()) {
-        if (deepEqual(val, bVal)) {
-          hasEqual = true;
-          break;
-        }
-      }
-      if (!hasEqual) return false;
-    }
-    return true;
-  }
-
-  // 处理普通对象和自定义类实例
-  const aKeys = Object.keys(a);
-  const bKeys = Object.keys(b);
-  if (aKeys.length !== bKeys.length) return false;
-
-  for (const key of aKeys) {
-    if (!bKeys.includes(key)) return false;
-    if (!deepEqual(a[key], b[key])) return false;
-  }
-
-  return true;
 }
 
 /**

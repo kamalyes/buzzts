@@ -7,4 +7,6 @@ export * from './polyfill';
 export * from './random';
 export * from './rate';
 export * from './string';
+export * from './typed';
 export * from './validator';
+export * from './storage';

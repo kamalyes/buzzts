@@ -4,7 +4,6 @@ import {
   arrayAllExistDeep,
   arrayAnyExist,
   arrayAnyExistDeep,
-  deepEqual,
   chunkArray,
 } from './array';
 
@@ -121,120 +120,6 @@ describe('arrayAnyExistDeep', () => {
 
   it('非数组参数返回 false', () => {
     expect(arrayAnyExistDeep(null as any, [{ a: 1 }])).toBe(false);
-  });
-});
-
-describe('deepEqual', () => {
-  it('简单类型相等返回 true', () => {
-    expect(deepEqual(1, 1)).toBe(true);
-    expect(deepEqual('abc', 'abc')).toBe(true);
-  });
-
-  it('简单类型不等返回 false', () => {
-    expect(deepEqual(1, 2)).toBe(false);
-    expect(deepEqual('abc', 'def')).toBe(false);
-  });
-
-  it('对象深度相等返回 true', () => {
-    expect(deepEqual({ a: 1, b: { c: 2 } }, { a: 1, b: { c: 2 } })).toBe(true);
-  });
-
-  it('对象深度不等返回 false', () => {
-    expect(deepEqual({ a: 1, b: { c: 2 } }, { a: 1, b: { c: 3 } })).toBe(false);
-  });
-
-  it('数组深度相等返回 true', () => {
-    expect(deepEqual([1, 2, { a: 3 }], [1, 2, { a: 3 }])).toBe(true);
-  });
-
-  it('数组深度不等返回 false', () => {
-    expect(deepEqual([1, 2, { a: 3 }], [1, 2, { a: 4 }])).toBe(false);
-  });
-
-  it('null 和 undefined 比较', () => {
-    expect(deepEqual(null, null)).toBe(true);
-    expect(deepEqual(null, undefined)).toBe(false);
-  });
-
-  it('类型不同返回 false', () => {
-    expect(deepEqual(1, '1')).toBe(false);
-    expect(deepEqual({}, [])).toBe(false);
-  });
-
-  it('Date 对象比较', () => {
-    expect(deepEqual(new Date(123), new Date(123))).toBe(true);
-    expect(deepEqual(new Date(123), new Date(456))).toBe(false);
-  });
-
-  it('RegExp 对象比较', () => {
-    expect(deepEqual(/abc/i, /abc/i)).toBe(true);
-    expect(deepEqual(/abc/i, /abc/g)).toBe(false);
-    expect(deepEqual(/abc/i, /def/i)).toBe(false);
-  });
-
-  it('Map 对象比较', () => {
-    const map1 = new Map([
-      ['a', 1],
-      ['b', 2],
-    ]);
-    const map2 = new Map([
-      ['a', 1],
-      ['b', 2],
-    ]);
-    const map3 = new Map([
-      ['a', 1],
-      ['b', 3],
-    ]);
-    expect(deepEqual(map1, map2)).toBe(true);
-    expect(deepEqual(map1, map3)).toBe(false);
-  });
-
-  it('Set 对象比较', () => {
-    const set1 = new Set([1, 2, 3]);
-    const set2 = new Set([3, 2, 1]);
-    const set3 = new Set([1, 2]);
-    expect(deepEqual(set1, set2)).toBe(true);
-    expect(deepEqual(set1, set3)).toBe(false);
-  });
-  class MyClass {
-    constructor(public x: number, public y: number) {}
-  }
-
-  it('自定义类实例比较', () => {
-    const obj1 = new MyClass(1, 2);
-    const obj2 = new MyClass(1, 2);
-    const obj3 = new MyClass(1, 3);
-    expect(deepEqual(obj1, obj2)).toBe(true);
-    expect(deepEqual(obj1, obj3)).toBe(false);
-    expect(deepEqual(obj1, { x: 1, y: 2 })).toBe(false); // 不同构造函数
-  });
-  it('复杂嵌套结构比较', () => {
-    const a = {
-      date: new Date(123),
-      map: new Map([['key', { val: 1 }]]),
-      set: new Set([1, 2]),
-      nested: {
-        arr: [1, 2, 3],
-        regexp: /test/i,
-      },
-    };
-    const b = {
-      date: new Date(123),
-      map: new Map([['key', { val: 1 }]]),
-      set: new Set([2, 1]),
-      nested: {
-        arr: [1, 2, 3],
-        regexp: /test/i,
-      },
-    };
-    expect(deepEqual(a, b)).toBe(true);
-  });
-  it('NaN 比较', () => {
-    expect(deepEqual(NaN, NaN)).toBe(true); // 如果你想支持这个，需要在代码里特殊判断
-  });
-
-  it('-0 和 +0 比较', () => {
-    expect(deepEqual(-0, +0)).toBe(true);
   });
 });
 
