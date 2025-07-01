@@ -1,64 +1,116 @@
 /**
- * @func sleep
- * @desc 返回一个可取消的 Promise，延迟指定毫秒后完成，常用于异步等待。
- *       支持传入回调函数，等待结束时执行。
- * @param {number} wait - 等待时间，单位为毫秒
- * @param {() => void} [callback] - 可选，等待结束时调用的回调函数
- * @returns {{ promise: Promise<void>, cancel: () => void }} 包含 Promise 和取消函数
- * @example
- * const { promise, cancel } = sleep(3000, () => console.log('3秒结束'));
- * await promise;
- * 如果需要取消等待
- * cancel();
+ * @class Sleep
+ * @classdesc 可取消的延迟等待类，封装了延迟 Promise 和取消功能
+ *            常用于异步等待场景，支持在等待结束时执行回调，并可取消等待
  */
-export function sleep(wait: number, callback?: () => void): { promise: Promise<void>; cancel: () => void } {
-  let timer: ReturnType<typeof setTimeout> | null = null;
-  let rejectFn: ((reason?: any) => void) | null = null;
+export class Sleep {
+  private timer: ReturnType<typeof setTimeout> | null = null;
+  private rejectFn: ((reason?: any) => void) | null = null;
+  public promise: Promise<void>;
 
-  const promise = new Promise<void>((resolve, reject) => {
-    rejectFn = reject;
-    timer = setTimeout(() => {
-      callback?.();
-      resolve();
-      timer = null;
-      rejectFn = null; // 清理，防止 cancel 后调用 reject
-    }, wait);
-  });
+  /**
+   * 创建一个可取消的延迟等待实例
+   * @param {number} wait - 等待时间，单位毫秒
+   * @param {() => void} [callback] - 可选，等待结束时调用的回调函数
+   *
+   * @example
+   * const sleepInstance = new Sleep(2000, () => console.log('等待结束'));
+   * sleepInstance.promise.then(() => console.log('完成'));
+   */
+  constructor(wait: number, callback?: () => void) {
+    this.promise = new Promise<void>((resolve, reject) => {
+      this.rejectFn = reject;
+      this.timer = setTimeout(() => {
+        callback?.();
+        resolve();
+        this.clear();
+      }, wait);
+    });
+  }
 
-  const cancel = () => {
-    if (timer) {
-      clearTimeout(timer);
-      timer = null;
-      if (rejectFn) {
-        rejectFn(new Error('sleep 被取消'));
-        rejectFn = null;
+  /**
+   * 取消等待，清理定时器并拒绝 Promise
+   * 调用后，promise 会以错误形式拒绝，错误信息为 "Sleep 被取消"
+   *
+   * @example
+   * const sleepInstance = new Sleep(5000);
+   * sleepInstance.cancel(); // 取消等待，promise 会拒绝
+   */
+  public cancel(): void {
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = null;
+      if (this.rejectFn) {
+        this.rejectFn(new Error('Sleep 被取消'));
+        this.rejectFn = null;
       }
     }
-  };
+  }
 
-  return { promise, cancel };
+  /**
+   * 清理内部状态，防止内存泄漏
+   * @private
+   */
+  private clear(): void {
+    this.timer = null;
+    this.rejectFn = null;
+  }
 }
 
 /**
- * @func timeoutPromise
- * @desc 给 Promise 设置超时时间，超时后自动拒绝
- * @param {Promise<T>} promise - 需要设置超时的 Promise
- * @param {number} ms - 超时时间，单位毫秒
- * @returns {Promise<T>} 带超时限制的 Promise
- * @example
- * await timeoutPromise(fetch(url), 5000); // 5秒内必须完成请求，否则抛出超时错误
+ * @class TimeoutPromise
+ * @classdesc 给 Promise 设置超时时间的包装类
+ *            超过指定时间未完成，则自动拒绝并抛出超时错误
+ * @template T Promise 返回值类型
  */
-export function timeoutPromise<T>(promise: Promise<T>, ms: number): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error('操作超时')), ms);
-    promise
-      .then(value => {
-        clearTimeout(timer);
-        resolve(value);
-      })
-      .catch(err => {
-        clearTimeout(timer);
-        reject(err);
-      });
-  });
+export class TimeoutPromise<T> {
+  private timer: ReturnType<typeof setTimeout> | null = null;
+  private wrappedPromise: Promise<T>;
+
+  /**
+   * 构造函数，包装传入的 Promise，添加超时功能
+   * @param {Promise<T>} promise - 需要设置超时的 Promise
+   * @param {number} ms - 超时时间，单位毫秒
+   *
+   * @example
+   * const timeoutInstance = new TimeoutPromise(fetch(url), 3000);
+   * timeoutInstance.promise.then(res => console.log(res)).catch(err => console.error(err));
+   */
+  constructor(promise: Promise<T>, ms: number) {
+    this.wrappedPromise = new Promise<T>((resolve, reject) => {
+      this.timer = setTimeout(() => {
+        reject(new Error('操作超时'));
+        this.clear();
+      }, ms);
+
+      promise
+        .then(value => {
+          this.clear();
+          resolve(value);
+        })
+        .catch(err => {
+          this.clear();
+          reject(err);
+        });
+    });
+  }
+
+  /**
+   * 获取包装后的 Promise
+   * @returns {Promise<T>} 带超时限制的 Promise
+   */
+  public get promise(): Promise<T> {
+    return this.wrappedPromise;
+  }
+
+  /**
+   * 清理定时器，防止内存泄漏
+   * @private
+   */
+  private clear(): void {
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = null;
+    }
+  }
 }

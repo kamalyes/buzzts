@@ -1,69 +1,39 @@
-import { sleep, timeoutPromise } from './time';
+import { Sleep, TimeoutPromise } from './time';
 
-jest.useFakeTimers();
-
-describe('sleep', () => {
-  let consoleErrorSpy: jest.SpyInstance;
-
-  beforeAll(() => {
-    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-  });
-
-  afterAll(() => {
-    consoleErrorSpy.mockRestore();
-  });
-  test('sleep 正常延迟后执行回调和完成 Promise', async () => {
+describe('Sleep 类测试', () => {
+  test('Sleep 正常等待完成', async () => {
+    const sleepInstance = new Sleep(100);
     const callback = jest.fn();
+    const sleepWithCallback = new Sleep(100, callback);
 
-    const { promise } = sleep(1000, callback);
-
-    // 还没到时间，回调和 resolve 不应执行
-    jest.advanceTimersByTime(999);
-    expect(callback).not.toHaveBeenCalled();
-
-    // 快进到1000ms，触发回调和 resolve
-    jest.advanceTimersByTime(1);
-
-    await expect(promise).resolves.toBeUndefined();
+    await expect(sleepInstance.promise).resolves.toBeUndefined();
+    await sleepWithCallback.promise;
     expect(callback).toHaveBeenCalledTimes(1);
+  });
+
+  test('Sleep 取消后 Promise 拒绝', async () => {
+    const sleepInstance = new Sleep(500);
+    sleepInstance.cancel();
+    await expect(sleepInstance.promise).rejects.toThrow('Sleep 被取消');
   });
 });
 
-describe('timeoutPromise', () => {
-  test('promise 在超时前完成', async () => {
-    const promise = new Promise<string>(resolve => {
-      setTimeout(() => resolve('done'), 500);
-    });
-
-    const wrapped = timeoutPromise(promise, 1000);
-
-    jest.advanceTimersByTime(500);
-
-    await expect(wrapped).resolves.toBe('done');
+describe('TimeoutPromise 类测试', () => {
+  test('TimeoutPromise 正常完成', async () => {
+    const p = new Promise<string>(resolve => setTimeout(() => resolve('ok'), 100));
+    const timeoutInstance = new TimeoutPromise(p, 200);
+    await expect(timeoutInstance.promise).resolves.toBe('ok');
   });
 
-  test('promise 超时后拒绝', async () => {
-    const promise = new Promise<string>(resolve => {
-      setTimeout(() => resolve('done'), 2000);
-    });
-
-    const wrapped = timeoutPromise(promise, 1000);
-
-    jest.advanceTimersByTime(1000);
-
-    await expect(wrapped).rejects.toThrow('操作超时');
+  test('TimeoutPromise 超时拒绝', async () => {
+    const p = new Promise<string>(resolve => setTimeout(() => resolve('ok'), 300));
+    const timeoutInstance = new TimeoutPromise(p, 100);
+    await expect(timeoutInstance.promise).rejects.toThrow('操作超时');
   });
 
-  test('promise 拒绝时正确传递错误', async () => {
-    const error = new Error('fail');
-    const promise = new Promise<string>((_, reject) => {
-      setTimeout(() => reject(error), 500);
-    });
-
-    const wrapped = timeoutPromise(promise, 1000);
-
-    jest.advanceTimersByTime(500);
-
-    await expect(wrapped).rejects.toThrow('fail');
+  test('TimeoutPromise 原始 Promise 拒绝', async () => {
+    const p = new Promise<string>((_, reject) => setTimeout(() => reject(new Error('原始错误')), 100));
+    const timeoutInstance = new TimeoutPromise(p, 200);
+    await expect(timeoutInstance.promise).rejects.toThrow('原始错误');
   });
 });

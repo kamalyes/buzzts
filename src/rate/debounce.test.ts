@@ -1,110 +1,151 @@
-import { debounce } from './debounce';
+import { debounce, Debounce } from './debounce';
 
 jest.useFakeTimers();
 
-describe('debounce', () => {
+describe('Debounce class', () => {
   let fn: jest.Mock;
-  let debounced: ReturnType<typeof debounce>;
+  let debouncer: Debounce<typeof fn>;
 
   beforeEach(() => {
     fn = jest.fn();
   });
 
-  afterEach(() => {
-    jest.clearAllTimers();
-  });
+  test('trailing debounce: function is called after wait time', () => {
+    debouncer = new Debounce(fn, 100, false);
 
-  test('非立即执行模式，函数延迟调用', () => {
-    debounced = debounce(fn, 100, false);
+    debouncer.call(1);
+    debouncer.call(2);
 
-    debounced('a');
+    // 函数尚未执行
     expect(fn).not.toHaveBeenCalled();
 
     // 快进时间，触发执行
     jest.advanceTimersByTime(100);
+
+    // 只执行一次，且参数为最后一次调用的参数
     expect(fn).toHaveBeenCalledTimes(1);
-    expect(fn).toHaveBeenCalledWith('a');
+    expect(fn).toHaveBeenCalledWith(2);
   });
 
-  test('非立即执行模式，多次调用只执行一次，参数为最后一次', () => {
-    debounced = debounce(fn, 100, false);
+  test('leading debounce: function is called immediately once', () => {
+    debouncer = new Debounce(fn, 100, true);
 
-    debounced('a');
-    debounced('b');
-    debounced('c');
-
-    jest.advanceTimersByTime(100);
+    // 第一次调用立即执行
+    const result1 = debouncer.call(1);
     expect(fn).toHaveBeenCalledTimes(1);
-    expect(fn).toHaveBeenCalledWith('c');
-  });
+    expect(fn).toHaveBeenCalledWith(1);
 
-  test('立即执行模式，第一次调用立即执行，后续调用忽略', () => {
-    debounced = debounce(fn, 100, true);
-
-    debounced('a');
-    expect(fn).toHaveBeenCalledTimes(1);
-    expect(fn).toHaveBeenCalledWith('a');
-
-    debounced('b');
-    debounced('c');
+    // 第二次调用在等待时间内，不会执行
+    const result2 = debouncer.call(2);
     expect(fn).toHaveBeenCalledTimes(1);
 
+    // 快进时间，等待时间结束
     jest.advanceTimersByTime(100);
 
-    // 100ms后再调用，可以再次立即执行
-    debounced('d');
+    // 再次调用，立即执行
+    const result3 = debouncer.call(3);
     expect(fn).toHaveBeenCalledTimes(2);
-    expect(fn).toHaveBeenLastCalledWith('d');
+    expect(fn).toHaveBeenCalledWith(3);
   });
 
-  test('cancel 方法取消等待执行', () => {
-    debounced = debounce(fn, 100, false);
+  test('cancel prevents delayed execution', () => {
+    debouncer = new Debounce(fn, 100, false);
 
-    debounced('a');
-    debounced.cancel();
+    debouncer.call(1);
+    debouncer.cancel();
 
     jest.advanceTimersByTime(100);
+
     expect(fn).not.toHaveBeenCalled();
   });
 
-  test('flush 方法立即执行等待中的函数（非立即执行模式）', () => {
-    debounced = debounce(fn, 100, false);
+  test('flush executes immediately if waiting', () => {
+    debouncer = new Debounce(fn, 100, false);
 
-    debounced('a');
+    debouncer.call(1);
     expect(fn).not.toHaveBeenCalled();
 
-    debounced.flush();
-    expect(fn).toHaveBeenCalledTimes(1);
-    expect(fn).toHaveBeenCalledWith('a');
+    // flush 立即执行
+    debouncer.flush();
 
-    // flush 后定时器清空，后续时间快进不会再调用
+    expect(fn).toHaveBeenCalledTimes(1);
+    expect(fn).toHaveBeenCalledWith(1);
+
+    // 快进时间，不会重复执行
     jest.advanceTimersByTime(100);
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
-  test('flush 在立即执行模式下不执行函数', () => {
-    debounced = debounce(fn, 100, true);
+  test('flush does nothing if no pending execution', () => {
+    debouncer = new Debounce(fn, 100, false);
 
-    debounced('a');
-    expect(fn).toHaveBeenCalledTimes(1);
+    expect(debouncer.flush()).toBeUndefined();
+    expect(fn).not.toHaveBeenCalled();
+  });
+});
 
-    debounced.flush();
-    // flush 对立即执行模式无效，不会额外调用
-    expect(fn).toHaveBeenCalledTimes(1);
+describe('debounce factory function', () => {
+  let fn: jest.Mock;
+  let debouncedFn: ReturnType<typeof debounce>;
+
+  beforeEach(() => {
+    fn = jest.fn();
   });
 
-  test('返回值为最后一次调用的结果', () => {
-    const fnReturn = jest.fn((x: number) => x * 2);
+  test('trailing debounce works with factory function', () => {
+    debouncedFn = debounce(fn, 100, false);
 
-    // 非立即执行模式，返回 undefined（因为延迟执行）
-    debounced = debounce(fnReturn, 100, false);
-    expect(debounced(2)).toBeUndefined();
+    debouncedFn(1);
+    debouncedFn(2);
+
+    expect(fn).not.toHaveBeenCalled();
 
     jest.advanceTimersByTime(100);
-    expect(fnReturn).toHaveBeenCalledWith(2);
 
-    // 立即执行模式，返回函数执行结果
-    debounced = debounce(fnReturn, 100, true);
-    expect(debounced(3)).toBe(6);
+    expect(fn).toHaveBeenCalledTimes(1);
+    expect(fn).toHaveBeenCalledWith(2);
+  });
+
+  test('leading debounce works with factory function', () => {
+    debouncedFn = debounce(fn, 100, true);
+
+    debouncedFn(1);
+    expect(fn).toHaveBeenCalledTimes(1);
+    expect(fn).toHaveBeenCalledWith(1);
+
+    debouncedFn(2);
+    expect(fn).toHaveBeenCalledTimes(1);
+
+    jest.advanceTimersByTime(100);
+
+    debouncedFn(3);
+    expect(fn).toHaveBeenCalledTimes(2);
+    expect(fn).toHaveBeenCalledWith(3);
+  });
+
+  test('cancel stops delayed execution', () => {
+    debouncedFn = debounce(fn, 100, false);
+
+    debouncedFn(1);
+    debouncedFn.cancel();
+
+    jest.advanceTimersByTime(100);
+
+    expect(fn).not.toHaveBeenCalled();
+  });
+
+  test('flush immediately executes delayed function', () => {
+    debouncedFn = debounce(fn, 100, false);
+
+    debouncedFn(1);
+    expect(fn).not.toHaveBeenCalled();
+
+    debouncedFn.flush();
+
+    expect(fn).toHaveBeenCalledTimes(1);
+    expect(fn).toHaveBeenCalledWith(1);
+
+    jest.advanceTimersByTime(100);
+    expect(fn).toHaveBeenCalledTimes(1);
   });
 });
