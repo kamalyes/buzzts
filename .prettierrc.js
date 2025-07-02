@@ -21,9 +21,6 @@ module.exports = {
   // 句尾加分号          
   semi: true,
 
-  // 使用单引号
-  singleQuote: true,
-
   // 默认解析器为 flow（Facebook 的静态类型检查工具），适用于 Flow 代码
   parser: 'flow',
 

@@ -1,4 +1,12 @@
 /**
+ * @func isBrowser
+ * @returns {boolean}
+ * @desc 检测代码是否运行在浏览器环境
+ * @example if (isBrowser()) {...}
+ */
+export const isBrowser = (): boolean => typeof window === 'object' && typeof document === 'object';
+
+/**
  * @func isSupportWebP
  * @desc 判断浏览器是否支持webP格式图片
  * @returns {boolean}
