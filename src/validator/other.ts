@@ -94,3 +94,13 @@ export function isUrl(url: string): boolean {
     return false;
   }
 }
+
+/**
+ * @func isIOS
+ * @param {string} str
+ * @returns {boolean}
+ * @desc 简单判断是否 iOS
+ */
+export function isIOS(str: string): boolean {
+  return RegexRules.ios.test(str);
+}

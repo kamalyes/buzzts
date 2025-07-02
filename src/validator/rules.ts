@@ -33,4 +33,5 @@ export const RegexRules = {
   hexColor: /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/,
   emojiRange:
     /[\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2100-\u27FF]|[\u2B05-\u2B07]|[\u2934-\u2935]|[\u3297-\u3299]|[\uA9\uAE\u303D\u3030\u2B55\u2B1C\u2B1B\u2B50]/,
+  ios: /iP(ad|hone|od)/,
 };
