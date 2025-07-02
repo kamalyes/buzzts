@@ -24,11 +24,17 @@ import del from 'rollup-plugin-delete';
 // import eslint from '@rollup/plugin-eslint'
 import pkg from './package.json';
 import gzip from 'rollup-plugin-gzip';
+// 可视化插件分析依赖大小
+import visualizer from 'rollup-plugin-visualizer';
+
 // 判断是是否为生产环境
 // 开发环境or生产环境
 const isPro = function () {
   return process.env.NODE_ENV === 'production';
 };
+
+const isAnalyze = () => process.env.ANALYZE === 'true';
+
 const extensions = ['.jsx', '.ts', '.tsx', '.less'];
 export default [
   {
@@ -93,6 +99,12 @@ export default [
       del({
         targets: ['./dist/src'],
         hook: 'buildEnd',
+      }),
+      isAnalyze() && visualizer({
+        filename: 'dist/stats.html', // 生成的报告文件名
+        open: true,             // 构建完成后自动打开报告
+        gzipSize: true,         // 显示 gzip 大小
+        brotliSize: true,       // 显示 brotli 大小
       }),
     ],
   },
