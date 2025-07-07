@@ -1,5 +1,5 @@
+import { toDate } from './basic';
 import { DateInput } from './types';
-import { toDate } from './convert';
 
 /**
  * @func formatDate

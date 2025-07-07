@@ -1,5 +1,4 @@
 import { formatDate, formatDuration } from './format';
-import { toDate } from './convert';
 
 describe('formatDate', () => {
   test('格式化有效日期字符串', () => {
@@ -32,18 +31,5 @@ describe('formatDuration', () => {
     expect(formatDuration(0)).toBe('00:00:00');
     expect(formatDuration(59)).toBe('00:00:59');
     expect(formatDuration(3600)).toBe('01:00:00');
-  });
-});
-
-describe('toDate', () => {
-  test('toDate 支持有效字符串', () => {
-    const d = toDate('2023-06-23');
-    expect(d).toBeInstanceOf(Date);
-    expect(d?.getFullYear()).toBe(2023);
-  });
-
-  test('toDate 支持 Date 对象', () => {
-    const now = new Date();
-    expect(toDate(now)).toBe(now);
   });
 });

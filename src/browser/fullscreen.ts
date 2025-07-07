@@ -277,6 +277,7 @@ export class Fullscreen {
       zIndex: style.zIndex || '',
       backgroundColor: style.backgroundColor || '',
       overflow: style.overflow || '',
+      transition: 'all 0.01s ease',
     };
 
     // 设置伪全屏样式
@@ -330,6 +331,7 @@ export class Fullscreen {
     for (const key in this.originalStyle) {
       style[key as any] = this.originalStyle[key];
     }
+    style.transition = 'all 0.01s ease'; // 添加过渡效果
     this.isFakeFullscreen = false;
   }
 
@@ -580,7 +582,7 @@ export class Fullscreen {
     this.changeListeners.clear();
     this.destroyed = true;
   }
-  
+
   /**
    * 获取当前 Fullscreen 实例的唯一标识符
    *

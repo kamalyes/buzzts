@@ -35,7 +35,7 @@ export function isNull(val: any): val is null {
  * isNil('') // false
  */
 export function isNil(val: any): val is null | undefined {
-  return val === null || val === undefined;
+  return isNull(val) || isUndefined(val);
 }
 
 /**

@@ -5,6 +5,10 @@ import {
   arrayAnyExist,
   arrayAnyExistDeep,
   chunkArray,
+  extractPropertyToArray,
+  arrayToObject,
+  toMappedArray,
+  findValueByKey,
 } from './array';
 
 describe('appendFieldByUniqueId', () => {
@@ -167,5 +171,95 @@ describe('chunkArray', () => {
     expect(() => chunkArray(null as any, 2)).toThrow(TypeError);
     expect(() => chunkArray(undefined as any, 2)).toThrow(TypeError);
     expect(() => chunkArray('string' as any, 2)).toThrow(TypeError);
+  });
+});
+
+describe('toMappedArray', () => {
+  it('should map items correctly with default options', () => {
+    const items = [
+      { value: '1', label: 'One' },
+      { value: '2', label: 'Two' },
+    ];
+    const result = toMappedArray(items);
+    expect(result).toEqual([{ value: '1' }, { value: '2' }]);
+  });
+
+  it('should map items correctly with custom key and value fields', () => {
+    const items = [
+      { id: '1', name: 'One' },
+      { id: '2', name: 'Two' },
+    ];
+    const result = toMappedArray(items, {
+      inKeyField: 'id',
+      inValueField: 'name',
+      outKeyField: 'key',
+      outValueField: 'label',
+    });
+    expect(result).toEqual([
+      { key: '1', label: 'One' },
+      { key: '2', label: 'Two' },
+    ]);
+  });
+
+  it('should return an empty array when input is null or undefined', () => {
+    expect(toMappedArray(null)).toEqual([]);
+    expect(toMappedArray(undefined)).toEqual([]);
+  });
+
+  it('should return items when includeKey or includeValue is false', () => {
+    const items = [
+      { value: '1', label: 'One' },
+      { value: '2', label: 'Two' },
+    ];
+    const result = toMappedArray(items, { includeKey: false });
+    expect(result).toEqual([{ value: '1' }, { value: '2' }]);
+  });
+});
+
+describe('findValueByKey', () => {
+  const items = [
+    { id: '1', name: 'One' },
+    { id: '2', name: 'Two' },
+    { id: '3', name: 'Three' },
+  ];
+
+  test('should return the whole object when returnKey is not provided', () => {
+    const result = findValueByKey(items, 'id', '1');
+    expect(result).toEqual({ id: '1', name: 'One' });
+  });
+
+  test('should return the specified key value when returnKey is provided', () => {
+    const result = findValueByKey(items, 'id', '1', 'name');
+    expect(result).toBe('One');
+  });
+
+  test('should return null if no matching item is found', () => {
+    const result = findValueByKey(items, 'id', '4');
+    expect(result).toBeNull();
+  });
+
+  test('should return null if items is null', () => {
+    const result = findValueByKey(null, 'id', '1');
+    expect(result).toBeNull();
+  });
+
+  test('should return null if items is undefined', () => {
+    const result = findValueByKey(undefined, 'id', '1');
+    expect(result).toBeNull();
+  });
+
+  test('should return the specified key value for different keys', () => {
+    const result = findValueByKey(items, 'id', '2', 'name');
+    expect(result).toBe('Two');
+  });
+
+  test('should return the whole object when returnKey is null', () => {
+    const result = findValueByKey(items, 'id', '1', null);
+    expect(result).toEqual({ id: '1', name: 'One' });
+  });
+
+  test('should return the whole object when returnKey is undefined', () => {
+    const result = findValueByKey(items, 'id', '1', undefined);
+    expect(result).toEqual({ id: '1', name: 'One' });
   });
 });

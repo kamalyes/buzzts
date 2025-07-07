@@ -1,4 +1,4 @@
-import { deepEqual } from '../typed';
+import { deepEqual, isNil } from '../typed';
 /**
  * @func appendFieldByUniqueId
  * @param {Array} tree - 树形数据数组
@@ -81,15 +81,17 @@ export function arrayAnyExistDeep(source: any[], target: any[]): boolean {
 }
 
 /**
- * @desc 将数组分成指定数量的块（尽量平均分配）
- * @param data 要分块的数组
- * @param chunkCount 分块数量，必须为正整数，且不超过数组长度
- * @returns 分块后的二维数组
- * @throws 参数校验失败时抛错
+ * @func chunkArray
+ * @param {T[]} data - 要分块的数组，类型为泛型数组，包含任意类型的元素
+ * @param {number} chunkCount - 分块数量，必须为正整数，且不超过数组长度
+ * @returns {T[][]} - 分块后的二维数组
+ * @throws {TypeError} - 当输入数据不是数组时抛出
+ * @throws {RangeError} - 当 chunkCount 不是正整数或大于数组长度时抛出
+ * @desc 将数组分成指定数量的块，尽量平均分配若分块数量超过数组长度，则每个元素将单独成为一块
  * @example
- * const arr = [1,2,3,4,5,6,7,8,9,10];
- * chunkArray(arr, 2); // [[1,2,3,4,5],[6,7,8,9,10]]
- * chunkArray(arr, 3); // [[1,2,3,4],[5,6,7],[8,9,10]]
+ * const arr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+ * chunkArray(arr, 2); // [[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]
+ * chunkArray(arr, 3); // [[1, 2, 3, 4], [5, 6, 7], [8, 9, 10]]
  */
 export function chunkArray<T>(data: T[], chunkCount: number): T[][] {
   if (!Array.isArray(data)) {
@@ -116,3 +118,169 @@ export function chunkArray<T>(data: T[], chunkCount: number): T[][] {
 
   return result;
 }
+
+/**
+ * @func extractPropertyToArray
+ * @param {Array<T> | null | undefined} items - 对象数组，每个对象应包含可选的指定属性
+ * @param {K} key - 要提取的属性名，类型为对象的键
+ * @param {boolean} excludeNil - 是否排除 null 和 undefined，默认为 false
+ * @returns {Array<T[K]>} - 返回所有指定属性值的数组，如果未提供有效的 `items`，则返回空数组
+ * @desc 提取给定对象数组中的所有指定属性的值可选地，排除值为 null 或 undefined 的项
+ * @example
+ * const items = [{ key: 'key1' }, { key: 'key2' }, { key: undefined }];
+ * const keys = extractPropertyToArray(items, 'key'); // ['key1', 'key2']
+ */
+export const extractPropertyToArray = <T, K extends keyof T>(
+  items: Array<T> | null | undefined,
+  key: K,
+  excludeNil: boolean = false,
+): Array<T[K]> => {
+  if (!Array.isArray(items)) return [];
+
+  return items
+    .map(item => item[key]) // 这里 TypeScript 应该能够推断出 item[key] 的类型
+    .filter((value): value is T[K] => !excludeNil || (value !== null && value !== undefined)); // 过滤并确保类型正确
+};
+
+/**
+ * @func arrayToObject
+ * @param {T[] | null | undefined} stringArray - 字符串数组，若输入为 `null` 或 `undefined`，将返回空数组
+ * @param {string} key - 要设置的属性名，默认为 'key'
+ * @param {boolean} excludeNil - 是否排除 null 和 undefined，默认为 false
+ * @returns {Array<{ [K in typeof key]: T }>} - 返回对象数组，每个对象包含指定的属性，对应数组中的字符串
+ * @desc 将字符串数组转换为对象数组，每个对象包含指定的属性，对应数组中的字符串可选地，排除值为 null 的项
+ * @example
+ * const stringArray = ['item1', 'item2', null];
+ * const objects = arrayToObject(stringArray, 'key'); // [{ key: 'item1' }, { key: 'item2' }]
+ */
+export const arrayToObject = <T extends string>(
+  stringArray: (T | null)[] | null | undefined,
+  key: string = 'key',
+  excludeNil: boolean = false,
+): Array<{ [K in typeof key]: T }> => {
+  const resultArray: Array<{ [K in typeof key]: T }> = [];
+
+  // 检查传入的参数是否为数组
+  if (!Array.isArray(stringArray)) {
+    return resultArray;
+  }
+
+  return stringArray
+    .filter(item => !excludeNil || item !== null) // 过滤掉 null 值
+    .map(item => ({ [key]: item as T })); // 使用类型断言
+};
+
+/**
+ * @func mapItems
+ * @template T
+ * @template U
+ * @param {Array<T> | null | undefined} items - 输入的对象数组
+ * @param {function(T): U | null} mapper - 映射函数
+ * @param {boolean} excludeNil - 是否排除值为空的项
+ * @returns {Array<U>} - 返回映射后的数组
+ * @desc 将对象数组映射为指定格式
+ */
+const mapItems = <T, U>(
+  items: Array<T> | null | undefined,
+  mapper: (item: T) => U | null,
+  excludeNil: boolean,
+): Array<U> => {
+  return (
+    items?.map(mapper).filter((item): item is U => {
+      if (excludeNil) {
+        // 检查是否是空值
+        return item !== null && item !== undefined && !(typeof item === 'object' && Object.keys(item).length === 0);
+      }
+      return item !== null;
+    }) ?? []
+  );
+};
+
+/**
+ * @func toMappedArray
+ * @param {Array<{ [key: string]: any }> | null | undefined} items - 输入的对象数组
+ * @param {Object} options - 选项对象
+ * @param {string} [options.inKeyField='key'] - 输入的 key 字段名
+ * @param {string} [options.inValueField='value'] - 输入的 value 字段名
+ * @param {string} [options.outKeyField='key'] - 输出的 key 字段名
+ * @param {string} [options.outValueField='value'] - 输出的 value 字段名
+ * @param {boolean} [options.includeKey=true] - 是否输出 key
+ * @param {boolean} [options.includeValue=true] - 是否输出 value
+ * @param {boolean} [options.excludeNil=false] - 是否排除值为空的项
+ * @returns {Array<{ [outKeyField]: string; label?: string; [outValueField]?: string }>} - 返回映射后的数组
+ * @desc 将对象数组映射为指定格式
+ * @example
+ * const items = [{ value: '1', label: 'One' }, { value: '2', label: 'Two' }];
+ * const result = toMappedArray(items, { inKeyField: 'value', outKeyField: 'label', includeKey: true, includeValue: true });
+ * console.log(result); // [{ key: '1', value: '1', label: 'One' }, { key: '2', value: '2', label: 'Two' }]
+ */
+export const toMappedArray = (
+  items: Array<{ [key: string]: any }> | null | undefined,
+  options: {
+    inKeyField?: string;
+    inValueField?: string;
+    outKeyField?: string;
+    outValueField?: string;
+    includeKey?: boolean;
+    includeValue?: boolean;
+    excludeNil?: boolean;
+  } = {},
+) => {
+  const {
+    inKeyField = 'key',
+    inValueField = 'value',
+    outKeyField = 'key',
+    outValueField = 'value',
+    includeKey = true,
+    includeValue = true,
+    excludeNil = false,
+  } = options;
+
+  return mapItems(
+    items,
+    item => {
+      const result: { [key: string]: any } = {};
+      if (includeKey && item[inKeyField] !== undefined) {
+        result[outKeyField] = item[inKeyField];
+      }
+      if (includeValue && item[inValueField] !== undefined) {
+        result[outValueField] = item[inValueField];
+      }
+
+      // 这里确保只返回非空的对象
+      return Object.keys(result).length > 0 ? result : null;
+    },
+    excludeNil,
+  );
+};
+
+/**
+ * @func findValueByKey
+ * @param {Array<{ [key: string]: any }> | null | undefined} items - 输入的对象数组
+ * @param {string} key - 要查找的键
+ * @param {any} value - 要查找的值
+ * @param {string | null | undefined} [returnKey] - 要返回的特定键，默认为 undefined，表示返回整个对象
+ * @returns {any | null| undefined} - 返回匹配的整个对象或指定键的值，或 null | undefined
+ * @desc 根据键和值查找对象的对应值
+ * @example
+ * const items = [{ id: '1', name: 'One' }, { id: '2', name: 'Two' }];
+ * const result1 = findValueByKey(items, 'id', '1'); // 返回整个对象
+ * console.log(result1); // { id: '1', name: 'One' }
+ * const result2 = findValueByKey(items, 'id', '1', 'name'); // 返回指定键的值
+ * console.log(result2); // 'One'
+ */
+export const findValueByKey = (
+  items: Array<{ [key: string]: any }> | null | undefined,
+  key: string,
+  value: any,
+  returnKey?: string | null | undefined, // 动态指定要返回的键
+) => {
+  if (!items) return null;
+
+  const foundItem = items.find(item => item[key] === value);
+
+  if (!foundItem) return null;
+
+  // 如果 returnKey 是 null 或 undefined，返回整个对象
+  return !isNil(returnKey) ? foundItem[returnKey] : foundItem;
+};

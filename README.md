@@ -1,5 +1,5 @@
 <p align="center">  
-    <img src=" https://img.shields.io/npm/dt/buzzts.svg">  
+    <img src="https://img.shields.io/npm/dt/buzzts.svg">  
     <img src="https://img.shields.io/npm/v/pnpm?logo=pnpm&color=blue" />
     <img src="https://img.shields.io/badge/Rollup-v2.79.1-blue?logo=rollup" />
     <img src="https://img.shields.io/npm/v/typescript?label=TypeScript&logo=typescript&logoColor=yellow" />
