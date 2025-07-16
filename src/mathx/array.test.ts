@@ -216,6 +216,41 @@ describe('toMappedArray', () => {
   });
 });
 
+describe('Utility Functions', () => {
+  describe('extractPropertyToArray', () => {
+    it('should extract specified property values from an array of objects', () => {
+      const items = [{ key: 'key1' }, { key: 'key2' }, { key: undefined }];
+      const keys = extractPropertyToArray(items, 'key');
+      expect(keys).toEqual(['key1', 'key2']);
+    });
+
+    it('should exclude null and undefined values when specified', () => {
+      const items = [{ key: 'key1' }, { key: null }, { key: undefined }];
+      const keys = extractPropertyToArray(items, 'key', true);
+      expect(keys).toEqual(['key1']);
+    });
+  });
+
+  describe('arrayToObject', () => {
+    it('should convert an array of strings into an array of objects', () => {
+      const stringArray = ['item1', 'item2', null];
+      const objects = arrayToObject(stringArray);
+      expect(objects).toEqual([{ key: 'item1' }, { key: 'item2' }, { key: null }]);
+    });
+
+    it('should return an empty array for null input', () => {
+      const objects = arrayToObject(null);
+      expect(objects).toEqual([]);
+    });
+
+    it('should exclude null values when specified', () => {
+      const stringArray = ['item1', 'item2', null];
+      const objects = arrayToObject(stringArray, 'key', true);
+      expect(objects).toEqual([{ key: 'item1' }, { key: 'item2' }]);
+    });
+  });
+});
+
 describe('findValueByKey', () => {
   const items = [
     { id: '1', name: 'One' },

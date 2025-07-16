@@ -70,6 +70,57 @@ type CSSStyleProps = Partial<{
 }>;
 
 /**
+ * @func getElementAttributes
+ * @desc 📝 获取指定元素的所有属性及其值
+ * @param {HTMLElement} el - 目标元素
+ * @returns {Record<string, string>} - 元素的所有属性键值对
+ * @example
+ * const attributes = getElementAttributes(document.getElementById('myElement'));
+ * console.log(attributes); // 输出元素的所有属性
+ */
+export function getElementAttributes(el: HTMLElement): Record<string, string> {
+  const attributes: Record<string, string> = {};
+  for (let i = 0; i < el.attributes.length; i++) {
+    const attr = el.attributes[i];
+    attributes[attr.name] = attr.value;
+  }
+  return attributes;
+}
+
+/**
+ * @func setElementAttributes
+ * @desc 📝 批量设置指定元素的多个属性
+ * @param {HTMLElement} el - 目标元素
+ * @param {Record<string, string>} attrs - 属性键值对
+ * @returns {void}
+ * @example
+ * setElementAttributes(document.getElementById('myElement'), {
+ *     'data-custom': 'value',
+ *     'class': 'new-class'
+ * });
+ */
+export function setElementAttributes(el: HTMLElement, attrs: Record<string, string>): void {
+  for (const key in attrs) {
+    el.setAttribute(key, attrs[key]);
+  }
+}
+
+/**
+ * @func removeElementAttributes
+ * @desc 📝 移除指定元素的多个属性
+ * @param {HTMLElement} el - 目标元素
+ * @param {string[]} attrs - 要移除的属性名数组
+ * @returns {void}
+ * @example
+ * removeElementAttributes(document.getElementById('myElement'), ['data-custom', 'class']);
+ */
+export function removeElementAttributes(el: HTMLElement, attrs: string[]): void {
+  attrs.forEach(attr => {
+    el.removeAttribute(attr);
+  });
+}
+
+/**
  * @func setElementStyle
  * @desc 📝 批量设置元素的内联样式
  * @param {HTMLElement | null} el - 目标元素，为null时静默失败
@@ -123,18 +174,18 @@ export const getElementStyle = (el: HTMLElement, property: string): string => {
 };
 
 /**
- * @func setProperties
+ * @func setElementProperties
  * @desc 📝 批量设置CSS自定义属性
  * @param {HTMLElement | null} el - 目标元素，为null时静默失败
  * @param {Record<string, string | null>} properties - 属性键值对
  * @returns {void}
  * @example
- * setProperties(document.documentElement, {
+ * setElementProperties(document.documentElement, {
  *   '--primary-color': '#1890ff',
  *   '--old-color': null // 移除该属性
  * });
  */
-export const setProperties = (el: HTMLElement | null, properties: Record<string, string | null>): void => {
+export const setElementProperties = (el: HTMLElement | null, properties: Record<string, string | null>): void => {
   if (!el) return;
 
   Object.entries(properties).forEach(([key, value]) => {
@@ -147,111 +198,111 @@ export const setProperties = (el: HTMLElement | null, properties: Record<string,
 };
 
 /**
- * @func toggleClass
+ * @func toggleElementClass
  * @desc 📝 切换元素的类名
  * @param {HTMLElement} ele - 目标元素
  * @param {string} className - 要切换的类名
  * @param {boolean} [force] - 强制添加(true)或移除(false)
  * @returns {boolean} 操作后类名是否存在
  * @example
- * toggleClass(element, 'active'); // 切换类名
- * toggleClass(element, 'active', true); // 强制添加
+ * toggleElementClass(element, 'active'); // 切换类名
+ * toggleElementClass(element, 'active', true); // 强制添加
  */
-export const toggleClass = (ele: HTMLElement, className: string, force?: boolean): boolean => {
-  const has = hasClass(ele, className);
+export const toggleElementClass = (ele: HTMLElement, className: string, force?: boolean): boolean => {
+  const has = hasElementClass(ele, className);
 
   if (typeof force !== 'undefined') {
     force = Boolean(force);
     if (force !== has) {
-      force ? addClass(ele, className) : removeClass(ele, className);
+      force ? addElementClass(ele, className) : removeElementClass(ele, className);
     }
     return force;
   }
 
-  has ? removeClass(ele, className) : addClass(ele, className);
+  has ? removeElementClass(ele, className) : addElementClass(ele, className);
   return !has;
 };
 
 /**
- * @func hasClass
+ * @func hasElementClass
  * @desc 📝 检查元素是否包含指定类名
  * @param {HTMLElement} ele - 目标元素
  * @param {string} className - 要检查的类名
  * @return {boolean} 是否包含该类名
  * @example
- * if (hasClass(element, 'hidden')) { ... }
+ * if (hasElementClass(element, 'hidden')) { ... }
  */
-export const hasClass = (ele: HTMLElement, className: string): boolean => {
+export const hasElementClass = (ele: HTMLElement, className: string): boolean => {
   return ele.classList.contains(className);
 };
 
 /**
- * @func addClass
+ * @func addElementClass
  * @desc 📝 为元素添加一个或多个类名
  * @param {HTMLElement} ele - 目标元素
  * @param {string | string[]} className - 要添加的类名(单个或多个)
  * @returns {void}
  * @example
- * addClass(element, 'active'); // 添加单个
- * addClass(element, ['active', 'highlight']); // 添加多个
+ * addElementClass(element, 'active'); // 添加单个
+ * addElementClass(element, ['active', 'highlight']); // 添加多个
  */
-export const addClass = (ele: HTMLElement, className: string | string[]): void => {
+export const addElementClass = (ele: HTMLElement, className: string | string[]): void => {
   const classes = Array.isArray(className) ? className : [className];
   ele.classList.add(...classes);
 };
 
 /**
- * @func removeClass
+ * @func removeElementClass
  * @desc 📝 从元素移除一个或多个类名
  * @param {HTMLElement} ele - 目标元素
  * @param {string | string[]} className - 要移除的类名(单个或多个)
  * @returns {void}
  * @example
- * removeClass(element, 'active'); // 移除单个
- * removeClass(element, ['active', 'highlight']); // 移除多个
+ * removeElementClass(element, 'active'); // 移除单个
+ * removeElementClass(element, ['active', 'highlight']); // 移除多个
  */
-export const removeClass = (ele: HTMLElement, className: string | string[]): void => {
+export const removeElementClass = (ele: HTMLElement, className: string | string[]): void => {
   const classes = Array.isArray(className) ? className : [className];
   ele.classList.remove(...classes);
 };
 
 /**
- * @func getData
+ * @func getElementData
  * @desc 📝 获取元素的自定义data属性值
  * @param {HTMLElement} ele - 目标元素
  * @param {string} key - 属性名(不带data-前缀)
  * @return {string | null} 属性值，不存在时返回null
  * @example
- * const userId = getData(element, 'user-id');
+ * const userId = getElementData(element, 'user-id');
  */
-export const getData = (ele: HTMLElement, key: string): string | null => {
+export const getElementData = (ele: HTMLElement, key: string): string | null => {
   return ele.dataset[key] || null;
 };
 
 /**
- * @func setData
+ * @func setElementData
  * @desc 📝 设置元素的自定义data属性
  * @param {HTMLElement} ele - 目标元素
  * @param {string} key - 属性名(不带data-前缀)
  * @param {string} value - 要设置的值
  * @returns {void}
  * @example
- * setData(element, 'user-id', '12345');
+ * setElementData(element, 'user-id', '12345');
  */
-export const setData = (ele: HTMLElement, key: string, value: string): void => {
+export const setElementData = (ele: HTMLElement, key: string, value: string): void => {
   ele.dataset[key] = value;
 };
 
 /**
- * @func removeData
+ * @func removeElementData
  * @desc 📝 移除元素的自定义data属性
  * @param {HTMLElement} ele - 目标元素
  * @param {string} key - 属性名(不带data-前缀)
  * @returns {void}
  * @example
- * removeData(element, 'user-id');
+ * removeElementData(element, 'user-id');
  */
-export const removeData = (ele: HTMLElement, key: string): void => {
+export const removeElementData = (ele: HTMLElement, key: string): void => {
   delete ele.dataset[key];
 };
 
@@ -309,23 +360,26 @@ export const createElement = (
 };
 
 /**
- * @func appendChildren
+ * @func appendElementChildren
  * @desc 📝 批量向父元素追加子节点（支持字符串、节点和空值过滤）
  * @param {HTMLElement} parent - 要追加到的父元素
  * @param {string | Node | (string | Node | null | undefined)[]} children - 子元素数组（支持字符串自动转文本节点）
  * @example
- * appendChildren(document.body, [
+ * appendElementChildren(document.body, [
  *   '文本节点',
  *   document.createElement('div'),
  *   null,  // 自动跳过
  *   undefined // 自动跳过
  * ]); // 基础用法
  *
- * appendChildren(ulElement, items.map(item => {
+ * appendElementChildren(ulElement, items.map(item => {
  *   return item.valid ? createListItem(item) : null; // 动态创建列表
  * }));
  */
-export function appendChildren(parent: HTMLElement, children: string | Node | (string | Node | null | undefined)[]) {
+export function appendElementChildren(
+  parent: HTMLElement,
+  children: string | Node | (string | Node | null | undefined)[],
+) {
   const items = Array.isArray(children) ? children : [children];
   items.forEach(child => {
     if (child == null) return;
@@ -336,7 +390,7 @@ export function appendChildren(parent: HTMLElement, children: string | Node | (s
 }
 
 /**
- * @func delegateEvent
+ * @func delegateElementEvent
  * @desc 📝 事件委托工具
  * @param {HTMLElement} parent - 委托父元素
  * @param {string} event - 事件类型
@@ -344,7 +398,7 @@ export function appendChildren(parent: HTMLElement, children: string | Node | (s
  * @param {(el: HTMLElement, e: Event) => void} handler - 处理函数
  * @return {Function} 取消委托的函数
  * @example
- * const removeDelegate = delegateEvent(
+ * const removeDelegate = delegateElementEvent(
  *   document.body,
  *   'click',
  *   '.btn',
@@ -352,7 +406,7 @@ export function appendChildren(parent: HTMLElement, children: string | Node | (s
  * );
  * removeDelegate(); // 取消委托
  */
-export const delegateEvent = (
+export const delegateElementEvent = (
   parent: HTMLElement,
   event: string,
   selector: string,
@@ -370,26 +424,26 @@ export const delegateEvent = (
 };
 
 /**
- * @func serializeForm
+ * @func serializeFormElement
  * @desc 📝 序列化表单数据为对象
  * @param {HTMLFormElement} form - 表单元素
  * @return {Record<string, string>} 表单数据对象
  * @example
- * const data = serializeForm(document.querySelector('form')); // { username: 'john', password: '123' }
+ * const data = serializeFormElement(document.querySelector('form')); // { username: 'john', password: '123' }
  */
-export const serializeForm = (form: HTMLFormElement): Record<string, string> => {
+export const serializeFormElement = (form: HTMLFormElement): Record<string, string> => {
   return Object.fromEntries(new FormData(form).entries()) as Record<string, string>;
 };
 
 /**
- * @func setFormValues
+ * @func setFormElementValues
  * @desc 📝 批量设置表单值
  * @param {HTMLFormElement} form - 表单元素
  * @param {Record<string, string>} values - 值对象
  * @example
- * setFormValues(form, { username: 'admin', remember: 'true' });
+ * setFormElementValues(form, { username: 'admin', remember: 'true' });
  */
-export const setFormValues = (form: HTMLFormElement, values: Record<string, string>): void => {
+export const setFormElementValues = (form: HTMLFormElement, values: Record<string, string>): void => {
   Object.entries(values).forEach(([name, value]) => {
     const element = form.elements.namedItem(name) as HTMLInputElement;
     if (element) {
@@ -403,17 +457,106 @@ export const setFormValues = (form: HTMLFormElement, values: Record<string, stri
 };
 
 /**
- * @func isInViewport
+ * @func getElementPosition
+ * @desc 📝 获取指定元素的相对位置信息
+ * @param {HTMLElement} el - 目标元素
+ * @returns {DOMRect} - 元素的位置信息
+ * @example
+ * const element = document.getElementById('myElement');
+ * const position = getElementPosition(element);
+ * console.log(position);
+ */
+export function getElementPosition(el: HTMLElement): DOMRect {
+  return el.getBoundingClientRect();
+}
+
+/**
+ * @func getElementOffset
+ * @desc 📝 获取指定元素的偏移量信息
+ * @param {HTMLElement} el - 目标元素
+ * @returns {{ top: number, left: number }} - 元素的偏移量信息
+ * @example
+ * const element = document.getElementById('myElement');
+ * const offset = getElementOffset(element);
+ * console.log(offset);
+ */
+export function getElementOffset(el: HTMLElement): { top: number; left: number } {
+  const rect = el.getBoundingClientRect();
+  return {
+    top: rect.top + window.scrollY,
+    left: rect.left + window.scrollX,
+  };
+}
+
+/**
+ * @func getElementSize
+ * @desc 📝 获取指定元素的宽高信息
+ * @param {HTMLElement} el - 目标元素
+ * @returns {{ width: number, height: number }} - 元素的宽高信息
+ * @example
+ * const element = document.getElementById('myElement');
+ * const size = getElementSize(element);
+ * console.log(size);
+ */
+export function getElementSize(el: HTMLElement): { width: number; height: number } {
+  return {
+    width: el.clientWidth,
+    height: el.clientHeight,
+  };
+}
+
+/**
+ * @func hideElement
+ * @desc 📝 隐藏指定元素
+ * @param {HTMLElement} el - 目标元素
+ * @returns {void} - 无返回值
+ * @example
+ * const element = document.getElementById('myElement');
+ * hideElement(element);
+ */
+export function hideElement(el: HTMLElement): void {
+  el.style.display = 'none';
+}
+
+/**
+ * @func showElement
+ * @desc 📝 显示指定元素
+ * @param {HTMLElement} el - 目标元素
+ * @returns {void} - 无返回值
+ * @example
+ * const element = document.getElementById('myElement');
+ * showElement(element);
+ */
+export function showElement(el: HTMLElement): void {
+  el.style.display = '';
+}
+
+/**
+ * @func isElementVisible
+ * @desc 📝 检查指定元素是否可见
+ * @param {HTMLElement} el - 目标元素
+ * @returns {boolean} - 元素是否可见
+ * @example
+ * const element = document.getElementById('myElement');
+ * const visible = isElementVisible(element);
+ * console.log(visible);
+ */
+export function isElementVisible(el: HTMLElement): boolean {
+  return el.offsetWidth > 0 && el.offsetHeight > 0;
+}
+
+/**
+ * @func isElementInViewport
  * @desc 📝 检测元素是否在可视区域内
  * @param {HTMLElement} el - 目标元素
  * @param {number} [threshold=0] - 可见比例阈值(0-1)
  * @return {boolean} 是否可见
  * @example
- * if (isInViewport(element, 0.5)) {
+ * if (isElementInViewport(element, 0.5)) {
  *
  * } // 至少50%可见
  */
-export const isInViewport = (el: HTMLElement, threshold = 0): boolean => {
+export const isElementInViewport = (el: HTMLElement, threshold = 0): boolean => {
   const rect = el.getBoundingClientRect();
   const viewHeight = Math.max(document.documentElement.clientHeight, window.innerHeight);
   const viewWidth = Math.max(document.documentElement.clientWidth, window.innerWidth);

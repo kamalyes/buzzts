@@ -1,6 +1,7 @@
 export * from './browser';
 export * from './datetime';
 export * from './dom';
+export * from './imagex';
 export * from './mathx';
 export * from './plugins';
 export * from './polyfill';

@@ -1,4 +1,4 @@
-import { strReplace, chunkString } from './replace';
+import { strReplace, chunkString, replaceCRLF, filterString } from './replace';
 
 describe('strReplace 函数测试', () => {
   test('替换区间3-6为*', () => {
@@ -92,5 +92,81 @@ describe('chunkString', () => {
     expect(() => chunkString(123, 3)).toThrow(TypeError);
     // @ts-expect-error 测试异常输入
     expect(() => chunkString(null, 3)).toThrow(TypeError);
+  });
+});
+
+describe('replaceCRLF', () => {
+  it('should replace newline characters with <br/>', () => {
+    const input = 'Hello,\nWorld!\rThis is a test.';
+    const expectedOutput = 'Hello,<br/>World!<br/>This is a test.';
+    expect(replaceCRLF(input)).toBe(expectedOutput);
+  });
+
+  it('should handle strings with only newline characters', () => {
+    const input = '\n\n\n';
+    const expectedOutput = '<br/><br/><br/>';
+    expect(replaceCRLF(input)).toBe(expectedOutput);
+  });
+
+  it('should return the same string when there are no newline characters', () => {
+    const input = 'Hello, World!';
+    const expectedOutput = 'Hello, World!';
+    expect(replaceCRLF(input)).toBe(expectedOutput);
+  });
+
+  it('should replace mixed newline characters', () => {
+    const input = 'Line 1\rLine 2\nLine 3';
+    const expectedOutput = 'Line 1<br/>Line 2<br/>Line 3';
+    expect(replaceCRLF(input)).toBe(expectedOutput);
+  });
+
+  it('should handle an empty string', () => {
+    const input = '';
+    const expectedOutput = '';
+    expect(replaceCRLF(input)).toBe(expectedOutput);
+  });
+});
+
+describe('filterString', () => {
+  it('should replace characters in the specified range with the separator', () => {
+    const input = 'Hello, World!';
+    const output = filterString(input, '*', 7, 12);
+    expect(output).toBe('Hello, *****!');
+  });
+
+  it('should use the default separator when not provided', () => {
+    const input = 'Hello, World!';
+    const output = filterString(input, undefined, 7, 12);
+    expect(output).toBe('Hello, *****!');
+  });
+
+  it('should replace characters from start to end when end is not provided', () => {
+    const input = 'Hello, World!';
+    const output = filterString(input, '#', 7);
+    expect(output).toBe('Hello, #####!');
+  });
+
+  it('should not replace any characters if the range is out of bounds', () => {
+    const input = 'Hello, World!';
+    const output = filterString(input, '*', 20, 25);
+    expect(output).toBe('Hello, World!'); // No replacement
+  });
+
+  it('should return the original string if no range is specified', () => {
+    const input = 'Hello, World!';
+    const output = filterString(input);
+    expect(output).toBe('Hello, World!'); // No replacement
+  });
+
+  it('should handle an empty string', () => {
+    const input = '';
+    const output = filterString(input);
+    expect(output).toBe(''); // No replacement
+  });
+
+  it('should handle a string shorter than the specified end index', () => {
+    const input = 'Hi!';
+    const output = filterString(input, '*', 1, 5);
+    expect(output).toBe('H**'); // Replaces from index 1 to the end of the string
   });
 });
