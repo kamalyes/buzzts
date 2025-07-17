@@ -1,26 +1,4 @@
-import { upperMoney, intToLowerChinese, sumAverage, getDistance, getPercentage } from './uints';
-
-describe('upperMoney', () => {
-  test('转换正数金额', () => {
-    expect(upperMoney(123456789.34)).toBe('壹亿贰仟叁佰肆拾伍万陆仟柒佰捌拾玖元叁角肆分');
-  });
-
-  test('转换零', () => {
-    expect(upperMoney(0)).toBe('零元整');
-  });
-
-  test('转换负数分金额', () => {
-    expect(upperMoney(-1001.01)).toBe('负壹仟零壹元壹分');
-  });
-
-  test('转换负数角金额', () => {
-    expect(upperMoney(-1001.1)).toBe('负壹仟零壹元壹角');
-  });
-
-  test('转换无小数金额', () => {
-    expect(upperMoney(1000)).toBe('壹仟元整');
-  });
-});
+import { intToLowerChinese, sumAverage, getDistance, getPercentage } from './number';
 
 describe('intToLowerChinese', () => {
   test('转换普通数字', () => {
