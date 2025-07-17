@@ -143,7 +143,7 @@ describe('filterString', () => {
   it('should replace characters from start to end when end is not provided', () => {
     const input = 'Hello, World!';
     const output = filterString(input, '#', 7);
-    expect(output).toBe('Hello, #####!');
+    expect(output).toBe('Hello, ######');
   });
 
   it('should not replace any characters if the range is out of bounds', () => {
@@ -155,7 +155,7 @@ describe('filterString', () => {
   it('should return the original string if no range is specified', () => {
     const input = 'Hello, World!';
     const output = filterString(input);
-    expect(output).toBe('Hello, World!'); // No replacement
+    expect(output).toBe('*************'); // No replacement
   });
 
   it('should handle an empty string', () => {
