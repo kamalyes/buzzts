@@ -16,18 +16,6 @@ export class Logger {
   private ignore?: (log: string | Error | LogEntry, logLevel: LogLevel, persistent?: boolean) => boolean;
 
   /**
-   * 是否启用颜色输出，默认为 true，当 stdout 是 TTY 且未禁用颜色
-   * @type {boolean}
-   */
-  private colors: boolean;
-
-  /**
-   * 是否启用 Emoji，默认为根据操作系统决定
-   * @type {boolean}
-   */
-  private emoji: boolean;
-
-  /**
    * 是否在日志消息中包含时间戳，默认为 true
    * @type {boolean}
    */
@@ -40,10 +28,22 @@ export class Logger {
   private persistent: boolean;
 
   /**
+   * 是否启用日志记录
+   * @type {boolean}
+   */
+  private enableLogging: boolean;
+
+  /**
    * 最大日志数量，超过此数量的日志将被删除
    * @type {number}
    */
   private maxLogs: number;
+
+  /**
+   * 时区
+   * @type {string}
+   */
+  private timezone: string;
 
   /**
    * 用于存储日志分组的栈
@@ -53,14 +53,30 @@ export class Logger {
 
   /**
    * 图标对象，存储不同日志类型的图标
-   * @type {{ success: string, warning: string, error: string, fatal: string }}
+   * @type {Record<string, string>}
    */
-  private icons = {
-    success: '✅',
-    warning: '⚠️',
-    error: '❌',
-    fatal: '❌',
-  };
+  private icons: Record<string, string>;
+
+  /**
+   * 获取当前环境的配置
+   * @param {LoggerOptions} options - 附加选项，允许用户自定义日志记录器的行为
+   * @returns {{ enableLogging: boolean, timezone: string }} - 当前环境的日志启用状态和时区
+   */
+  private getEnvironmentConfig(options: LoggerOptions): { enableLogging: boolean; timezone: string } {
+    const isNode = typeof process !== 'undefined' && process.versions != null && process.versions.node != null;
+
+    const enableLogging = isNode
+      ? process.env.ENABLE_LOGGING === 'true'
+      : options.enableLogging !== undefined
+      ? options.enableLogging
+      : true;
+
+    const timezone = isNode
+      ? options.timezone || process.env.TIMEZONE || 'Asia/Shanghai'
+      : options.timezone || 'Asia/Shanghai';
+
+    return { enableLogging, timezone };
+  }
 
   /**
    * 初始化新的日志记录器
@@ -69,24 +85,33 @@ export class Logger {
   constructor(options: LoggerOptions = {}) {
     this.logLevel = initializeLogLevel(options.logLevel);
     this.ignore = initializeIgnore(options.ignore);
-    this.colors = options.colors ?? (process.stdout.isTTY && !process.env['NODE_DISABLE_COLORS']);
-    this.emoji = options.emoji ?? (process.platform !== 'win32' || !/^\d\./.test(require('os').release()));
     this.timestamp = options.timestamp !== false;
     this.persistent = options.persistent ?? false;
     this.maxLogs = options.maxLogs ?? 500;
+    // 获取环境配置
+    const { enableLogging, timezone } = this.getEnvironmentConfig(options);
+    this.enableLogging = enableLogging;
+    this.timezone = timezone;
+    this.icons = this.initializeIcons(options);
+  }
 
-    // 自定义图标
-    this.icons.success = options.successIcon || this.icons.success;
-    this.icons.warning = options.warningIcon || this.icons.warning;
-    this.icons.error = options.errorIcon || this.icons.error;
-    this.icons.fatal = options.fatalIcon || this.icons.fatal;
+  private initializeIcons(options: LoggerOptions): Record<string, string> {
+    return {
+      trace: options.traceIcon || '🔍',
+      debug: options.debugIcon || '🐞',
+      info: options.infoIcon || '📝',
+      success: options.successIcon || '✅',
+      warning: options.warningIcon || '⚠️',
+      error: options.errorIcon || '❌',
+      fatal: options.fatalIcon || '💀',
+    };
   }
 
   /**
    * 获取当前日志等级
    * @returns {LogLevel} - 当前日志等级
    */
-  getLogLevel(): LogLevel {
+  public getLogLevel(): LogLevel {
     return this.logLevel;
   }
 
@@ -94,8 +119,24 @@ export class Logger {
    * 设置日志等级
    * @param {LogLevel} level - 新的日志等级
    */
-  setLogLevel(level: LogLevel) {
+  public setLogLevel(level: LogLevel) {
     this.logLevel = level;
+  }
+
+  /**
+   * 设置日志记录的启用状态
+   * @param {boolean} enable - 如果为 true，则启用日志记录；如果为 false，则禁用日志记录
+   */
+  public setEnableLogging(enable: boolean): void {
+    this.enableLogging = enable;
+  }
+
+  /**
+   * 获取当前日志记录的启用状态
+   * @returns {boolean} - 返回当前日志记录是否启用
+   */
+  public getEnableLogging(): boolean {
+    return this.enableLogging;
   }
 
   /**
@@ -103,13 +144,34 @@ export class Logger {
    * @param {string} message - 要写入的日志消息
    */
   private writeLogToStorage(message: string): void {
-    if (this.persistent) {
-      const logs = JSON.parse(localStorage.getItem('logs') || '[]');
+    if (this.enableLogging && this.persistent) {
+      const logs = this.getStoredLogs();
       logs.push(message);
       if (logs.length > this.maxLogs) {
         logs.shift(); // 删除最旧的日志
       }
-      localStorage.setItem('logs', JSON.stringify(logs));
+      this.storeLogs(logs);
+    }
+  }
+
+  /**
+   * 获取存储的日志
+   * @returns {string[]} - 存储的日志数组
+   */
+  private getStoredLogs(): string[] {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return JSON.parse(window.localStorage.getItem('logs') || '[]');
+    }
+    return []; // 在 Node.js 环境中返回空数组
+  }
+
+  /**
+   * 存储日志
+   * @param {string[]} logs - 要存储的日志数组
+   */
+  private storeLogs(logs: string[]): void {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem('logs', JSON.stringify(logs));
     }
   }
 
@@ -130,43 +192,51 @@ export class Logger {
    * @returns {string} - 格式化后的日志消息
    */
   private formatMessage(message: string): string {
-    const timestamp = this.timestamp ? `[${new Date().toISOString()}] ` : '';
+    const timestamp = this.timestamp ? `[${new Date().toLocaleString('en-US', { timeZone: this.timezone })}] ` : '';
     return `${timestamp}${message}`;
   }
 
   /**
-   * 将日志消息输出到控制台
+   * 记录日志消息，输出到控制台以及LocalStorage
    * @param {string} message - 要输出的日志消息
+   * @param {LogLevel} [level=LogLevel.log] - 日志等级，默认为 LogLevel.log
    */
-  private logToConsole(message: string): void {
-    console.log(this.formatMessage(message));
-    this.writeLogToStorage(this.formatMessage(message));
+  public log(message: string, level: LogLevel = LogLevel.log): void {
+    if (this.enableLogging && this.shouldLog(level, message)) {
+      console.log(this.formatMessage(message));
+      this.writeLogToStorage(this.formatMessage(message));
+    }
   }
 
   /**
-   * 记录日志消息
-   * @param {string} message - 要记录的日志消息
-   * @param {LogLevel} [level=LogLevel.log] - 日志等级，默认为 LogLevel.log
+   * 记录调试信息
+   * @param {string} message - 要记录的调试信息
    */
-  log(message: string, level: LogLevel = LogLevel.log): void {
-    if (this.shouldLog(level, message)) {
-      this.logToConsole(message);
-    }
+  public debug(message: string): void {
+    this.log(`${this.icons.debug} ${message}`, LogLevel.debug);
+  }
+
+  /**
+   * 记录调试信息
+   * @param {string} message - 要记录的调试信息
+   */
+  public trace(message: string): void {
+    this.log(`${this.icons.trace} ${message}`, LogLevel.debug);
   }
 
   /**
    * 记录信息日志
    * @param {string} message - 要记录的信息消息
    */
-  info(message: string): void {
-    this.log(message, LogLevel.info);
+  public info(message: string): void {
+    this.log(`${this.icons.info} ${message}`, LogLevel.info);
   }
 
   /**
    * 记录警告日志
    * @param {string} message - 要记录的警告消息
    */
-  warn(message: string): void {
+  public warn(message: string): void {
     this.log(`${this.icons.warning} ${message}`, LogLevel.warning);
   }
 
@@ -174,7 +244,7 @@ export class Logger {
    * 记录错误日志
    * @param {string} message - 要记录的错误消息
    */
-  error(message: string): void {
+  public error(message: string): void {
     this.log(`${this.icons.error} ${message}`, LogLevel.error);
   }
 
@@ -182,7 +252,7 @@ export class Logger {
    * 记录致命错误日志
    * @param {string} message - 要记录的致命错误消息
    */
-  fatal(message: string): void {
+  public fatal(message: string): void {
     this.log(`${this.icons.fatal} ${message}`, LogLevel.fatal);
   }
 
@@ -190,7 +260,7 @@ export class Logger {
    * 记录成功日志
    * @param {string} message - 要记录的成功消息
    */
-  success(message: string): void {
+  public success(message: string): void {
     this.log(`${this.icons.success} ${message}`, LogLevel.success);
   }
 
@@ -198,7 +268,7 @@ export class Logger {
    * 开始分组
    * @param {string} label - 分组的标签
    */
-  group(label: string): void {
+  public group(label: string): void {
     this._logGroupStack.push(label);
     console.group(label);
     this.log(`开始分组: ${label}`, LogLevel.log);
@@ -207,7 +277,7 @@ export class Logger {
   /**
    * 结束分组
    */
-  groupEnd(): void {
+  public groupEnd(): void {
     const label = this._logGroupStack.pop();
     if (label) {
       console.groupEnd();
@@ -219,25 +289,17 @@ export class Logger {
    * 以折叠方式开始分组
    * @param {string} label - 分组的标签
    */
-  groupCollapsed(label: string): void {
+  public groupCollapsed(label: string): void {
     this._logGroupStack.push(label);
     console.groupCollapsed(label);
     this.log(`开始折叠分组: ${label}`, LogLevel.log);
   }
 
   /**
-   * 记录调试信息
-   * @param {string} message - 要记录的调试信息
-   */
-  debug(message: string): void {
-    this.log(message, LogLevel.debug);
-  }
-
-  /**
    * 记录表格信息
    * @param {any} data - 要记录的数据，可以是数组或对象
    */
-  table(data: any): void {
+  public table(data: any): void {
     console.table(data);
     this.logData('表格数据', data);
   }
@@ -246,7 +308,7 @@ export class Logger {
    * 记录对象信息
    * @param {object} obj - 要记录的对象
    */
-  dir(obj: any): void {
+  public dir(obj: any): void {
     console.dir(obj);
     this.logData('对象数据', obj);
   }
@@ -259,15 +321,17 @@ export class Logger {
   private logData(label: string, data: any): void {
     const groupPrefix = this._logGroupStack.length > 0 ? `[${this._logGroupStack.join(' > ')}] ` : '';
     const logMessage = `${groupPrefix}${label}: ${JSON.stringify(data, null, 2)}`;
-    this.writeLogToStorage(logMessage);
+    this.writeLogToStorage(this.formatMessage(logMessage));
   }
 
   /**
    * 清除日志
    */
-  clearLogs(): void {
+  public clearLogs(): void {
     if (this.persistent) {
-      localStorage.removeItem('logs'); // 清空日志
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem('logs'); // 清空日志
+      }
     }
     console.clear();
   }

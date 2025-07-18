@@ -18,16 +18,6 @@ export interface LoggerOptions {
   ignore?: RegExp | ((log: string | Error | LogEntry, logLevel: LogLevel, persistent?: boolean) => boolean);
 
   /**
-   * 是否启用颜色输出
-   */
-  colors?: boolean;
-
-  /**
-   * 是否启用 Emoji
-   */
-  emoji?: boolean;
-
-  /**
    * 是否在日志消息中包含时间戳
    */
   timestamp?: boolean;
@@ -38,9 +28,35 @@ export interface LoggerOptions {
   persistent?: boolean;
 
   /**
+   * 是否启用日志记录
+   * @type {boolean}
+   */
+  enableLogging?: boolean;
+
+  /**
    * 最大日志数量，超过此数量的日志将被删除
    */
   maxLogs?: number;
+
+  /**
+   * 时区
+   */
+  timezone?: string;
+
+  /**
+   * 自定义跟踪图标
+   */
+  traceIcon?: string;
+
+  /**
+   * 自定义调试图标
+   */
+  debugIcon?: string;
+
+  /**
+   * 自定义普通图标
+   */
+  infoIcon?: string;
 
   /**
    * 自定义成功图标
