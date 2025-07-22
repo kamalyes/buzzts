@@ -76,7 +76,15 @@ export default [
           watch: ['dist', 'examples', 'src/**/*'],
           verbose: false,
         }),
-      isPro() && terser(),
+      isPro() && terser({
+        compress: {
+          drop_debugger: true, // 删除 debugger
+        },
+        mangle: true, // 混淆变量名
+        output: {
+          comments: false, // 删除注释
+        },
+      }),
       isPro() && gzip(),
       !isPro() &&
         serve({

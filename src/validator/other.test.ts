@@ -1,4 +1,4 @@
-import { isDataTime, isPostCode, isTelNumber, isHasEmoji, isHexColor, isUrl } from './other';
+import { isDataTime, isPostCode, isTelNumber, isHasEmoji, isHexColor, isUrl, isIOS } from './other';
 
 describe('验证工具类测试', () => {
   // isDataTime 测试
@@ -87,5 +87,41 @@ describe('验证工具类测试', () => {
       expect(isUrl('javascript:alert(1)')).toBe(true); // 危险协议
       expect(isUrl('')).toBe(false);
     });
+  });
+});
+
+describe('isIOS', () => {
+  test('应在 iOS 用户代理时返回 true', () => {
+    const iosUserAgents = [
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)', // iPhone 用户代理
+      'Mozilla/5.0 (iPad; CPU OS 14_0 like Mac OS X)', // iPad 用户代理
+      'Mozilla/5.0 (iPod touch; CPU iPhone OS 14_0 like Mac OS X)', // iPod touch 用户代理
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 13_0 like Mac OS X)', // 旧版本 iPhone 用户代理
+      'Mozilla/5.0 (iPad; CPU OS 13_0 like Mac OS X)', // 旧版本 iPad 用户代理
+    ];
+
+    // 遍历所有 iOS 用户代理，期望返回 true
+    iosUserAgents.forEach(agent => {
+      expect(isIOS(agent)).toBe(true);
+    });
+  });
+
+  test('应在非 iOS 用户代理时返回 false', () => {
+    const nonIosUserAgents = [
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', // Windows 用户代理
+      'Mozilla/5.0 (Linux; Android 10; Pixel 3)', // Android 用户代理
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', // macOS 用户代理
+      'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:90.0) Gecko/20100101 Firefox/90.0', // Linux 用户代理
+    ];
+
+    // 遍历所有非 iOS 用户代理，期望返回 false
+    nonIosUserAgents.forEach(agent => {
+      expect(isIOS(agent)).toBe(false);
+    });
+  });
+
+  // 测试空字符串应返回 false
+  test('应在空字符串时返回 false', () => {
+    expect(isIOS('')).toBe(false); // 空字符串
   });
 });

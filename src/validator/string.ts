@@ -1,5 +1,6 @@
 import { RegexRules } from './rules';
 import { match } from './basic';
+import { isValidDateT } from '../datetime/valid';
 
 /**
  * @func isNLen
@@ -114,13 +115,13 @@ export function isChineseIDCardNumber(id: string): boolean {
   if (id.length === 15) {
     // 15位：YYMMDD → 19YY-MM-DD
     const birthDate = `19${id.slice(6, 12)}`;
-    if (!isValidDate(birthDate)) {
+    if (!isValidDateT(birthDate)) {
       return false;
     }
   } else if (id.length === 18) {
     // 18位：YYYYMMDD
     const birthDate = id.slice(6, 14);
-    if (!isValidDate(birthDate)) {
+    if (!isValidDateT(birthDate)) {
       return false;
     }
   }
@@ -142,21 +143,6 @@ function isValidRegionCode(regionCode: string): boolean {
   // 实际项目中应使用合法的行政区划代码库（如国家统计局数据）
   // 示例：仅简单校验是否为数字
   return /^\d{6}$/.test(regionCode);
-}
-
-/** 校验日期（支持 YYYYMMDD 或 YYMMDD → 19YYMMDD） */
-function isValidDate(dateStr: string): boolean {
-  // 15位：YYMMDD → 19YYMMDD
-  if (dateStr.length === 6) {
-    dateStr = `19${dateStr}`;
-  }
-  // 18位：YYYYMMDD
-  const year = parseInt(dateStr.slice(0, 4));
-  const month = parseInt(dateStr.slice(4, 6));
-  const day = parseInt(dateStr.slice(6, 8));
-
-  // 简单日期校验（实际项目应更严格）
-  return year >= 1900 && year <= new Date().getFullYear() && month >= 1 && month <= 12 && day >= 1 && day <= 31;
 }
 
 /**

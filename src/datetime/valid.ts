@@ -48,10 +48,81 @@ export function isBetween(target: DateInput, start: DateInput, end: DateInput): 
  * @example
  * isLeapYear(2020) // true
  * isLeapYear(2023) // false
- * @desc   判断指定年份是否为闰年
+ * @desc 判断指定年份是否为闰年
  */
 export function isLeapYear(year: number): boolean {
   return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+}
+
+/**
+ * @func isValidYear
+ * @param {number} year - 年份
+ * @return {boolean} 年份是否有效
+ * @example
+ * isValidYear(2023) // true
+ * isValidYear(1899) // false
+ * @desc 检查年份是否在有效范围内（1900年及以后）
+ */
+export function isValidYear(year: number): boolean {
+  const currentYear = new Date().getFullYear();
+  return year >= 1900 && year <= currentYear;
+}
+
+/**
+ * @func isValidMonth
+ * @param {number} month - 月份
+ * @return {boolean} 月份是否有效
+ * @example
+ * isValidMonth(1) // true
+ * isValidMonth(13) // false
+ * @desc 检查月份是否在有效范围内（1到12）
+ */
+export function isValidMonth(month: number): boolean {
+  return month >= 1 && month <= 12;
+}
+
+/**
+ * @func isValidDay
+ * @param {number} day - 日期
+ * @param {number} month - 月份
+ * @param {number} year - 年份
+ * @return {boolean} 日期是否有效
+ * @example
+ * isValidDay(31, 1, 2023) // true
+ * isValidDay(30, 2, 2023) // false
+ * @desc 检查给定日期在指定月份和年份中是否有效
+ */
+export function isValidDay(day: number, month: number, year: number): boolean {
+  const daysInMonth = [31, isLeapYear(year) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  return day >= 1 && day <= daysInMonth[month - 1];
+}
+
+/**
+ * @func isValidDateT
+ * @param {string} dateStr - 日期
+ * @return {boolean} 日期是否有效
+ * @example
+ * isValidDateT('20230228') // true
+ * isValidDateT('20230229') // false
+ * @desc 校验日期（支持 YYYYMMDD 或 YYMMDD → 19YYMMDD）
+ */
+export function isValidDateT(dateStr: string): boolean {
+  // 将 YYMMDD 转换为 YYYYMMDD
+  if (dateStr.length === 6) {
+    dateStr = `19${dateStr}`;
+  }
+
+  // 提取年份、月份和日期
+  const year = parseInt(dateStr.slice(0, 4), 10);
+  const month = parseInt(dateStr.slice(4, 6), 10);
+  const day = parseInt(dateStr.slice(6, 8), 10);
+
+  // 检查年份、月份和日期的基本范围
+  if (!isValidYear(year) || !isValidMonth(month) || !isValidDay(day, month, year)) {
+    return false;
+  }
+
+  return true;
 }
 
 /**

@@ -11,6 +11,11 @@ import {
   getTypeOf,
   deepEqual,
   isJsonObject,
+  isMap,
+  isSet,
+  isWeakMap,
+  isWeakSet,
+  isEqual,
 } from './valid';
 
 describe('类型检测工具函数', () => {
@@ -182,6 +187,158 @@ describe('类型检测工具函数', () => {
     test('应处理 null 和 undefined', () => {
       expect(getTypeOf(null)).toBe('Null');
       expect(getTypeOf(undefined)).toBe('Undefined');
+    });
+  });
+});
+describe('类型检测函数', () => {
+  describe('isMap', () => {
+    test('应该对 Map 对象返回 true', () => {
+      expect(isMap(new Map())).toBe(true);
+    });
+
+    test('应该对非 Map 对象返回 false', () => {
+      expect(isMap({})).toBe(false);
+      expect(isMap([])).toBe(false);
+      expect(isMap(null)).toBe(false);
+      expect(isMap(undefined)).toBe(false);
+    });
+  });
+
+  describe('isSet', () => {
+    test('应该对 Set 对象返回 true', () => {
+      expect(isSet(new Set())).toBe(true);
+    });
+
+    test('应该对非 Set 对象返回 false', () => {
+      expect(isSet({})).toBe(false);
+      expect(isSet([])).toBe(false);
+      expect(isSet(null)).toBe(false);
+      expect(isSet(undefined)).toBe(false);
+    });
+  });
+
+  describe('isWeakMap', () => {
+    test('应该对 WeakMap 对象返回 true', () => {
+      expect(isWeakMap(new WeakMap())).toBe(true);
+    });
+
+    test('应该对非 WeakMap 对象返回 false', () => {
+      expect(isWeakMap(new Map())).toBe(false);
+      expect(isWeakMap({})).toBe(false);
+      expect(isWeakMap(null)).toBe(false);
+      expect(isWeakMap(undefined)).toBe(false);
+    });
+  });
+
+  describe('isWeakSet', () => {
+    test('应该对 WeakSet 对象返回 true', () => {
+      expect(isWeakSet(new WeakSet())).toBe(true);
+    });
+
+    test('应该对非 WeakSet 对象返回 false', () => {
+      expect(isWeakSet(new Set())).toBe(false);
+      expect(isWeakSet({})).toBe(false);
+      expect(isWeakSet(null)).toBe(false);
+      expect(isWeakSet(undefined)).toBe(false);
+    });
+  });
+
+  describe('isEqual', () => {
+    test('应该对相等的原始值返回 true', () => {
+      expect(isEqual(1, 1)).toBe(true);
+      expect(isEqual('test', 'test')).toBe(true);
+    });
+
+    test('应该对不相等的原始值返回 false', () => {
+      expect(isEqual(1, 2)).toBe(false);
+      expect(isEqual('test', 'TEST')).toBe(false);
+    });
+
+    test('应该对相等的对象返回 true', () => {
+      expect(isEqual({ a: 1 }, { a: 1 })).toBe(true);
+      expect(isEqual(new Date(123), new Date(123))).toBe(true);
+      expect(isEqual([1, 2], [1, 2])).toBe(true);
+      expect(isEqual(new Map([['a', 1]]), new Map([['a', 1]]))).toBe(true);
+      expect(isEqual(new Set([1, 2]), new Set([2, 1]))).toBe(true);
+    });
+
+    test('应该对不相等的对象返回 false', () => {
+      expect(isEqual({ a: 1 }, { a: 2 })).toBe(false);
+      expect(isEqual(new Map([['a', 1]]), new Map([['b', 1]]))).toBe(false);
+    });
+
+    test('应该对函数返回 false', () => {
+      expect(
+        isEqual(
+          () => {},
+          () => {},
+        ),
+      ).toBe(false);
+    });
+
+    test('应该对深度嵌套的相等对象返回 true', () => {
+      const obj1 = { a: { b: { c: 1 } } };
+      const obj2 = { a: { b: { c: 1 } } };
+      expect(isEqual(obj1, obj2)).toBe(true);
+    });
+
+    test('应该对深度嵌套的不相等对象返回 false', () => {
+      const obj1 = { a: { b: { c: 1 } } };
+      const obj2 = { a: { b: { c: 2 } } };
+      expect(isEqual(obj1, obj2)).toBe(false);
+    });
+
+    interface CircularReference {
+      a: number;
+      self?: CircularReference; // 可选的 self 属性
+    }
+
+    test('应该处理循环引用', () => {
+      const obj1: CircularReference = { a: 1 };
+      obj1.self = obj1; // obj1 的循环引用
+
+      const obj2: CircularReference = { a: 1 };
+      obj2.self = obj2; // obj2 的循环引用
+
+      // 两个对象的结构相同，应该相等
+      expect(isEqual(obj1, obj2)).toBe(true);
+
+      // 修改 obj2 的属性，应该不相等
+      obj2.a = 2;
+      expect(isEqual(obj1, obj2)).toBe(false);
+    });
+
+    test('应该对键顺序不同的相等对象返回 true', () => {
+      const obj1 = { a: 1, b: 2 };
+      const obj2 = { b: 2, a: 1 };
+      expect(isEqual(obj1, obj2)).toBe(true);
+    });
+
+    test('应该对不同类型返回 false', () => {
+      expect(isEqual({}, [])).toBe(false);
+    });
+
+    test('应该对不相等的数组返回 false', () => {
+      expect(isEqual([1, 2, 3], [1, 2, 3, 4])).toBe(false);
+      expect(isEqual([1, 2, 3], [3, 2, 1])).toBe(false);
+    });
+
+    test('应该对不相等的 map 返回 false', () => {
+      const map1 = new Map([
+        ['a', 1],
+        ['b', 2],
+      ]);
+      const map2 = new Map([
+        ['a', 1],
+        ['b', 3],
+      ]);
+      expect(isEqual(map1, map2)).toBe(false);
+    });
+
+    test('应该对不相等的 set 返回 false', () => {
+      const set1 = new Set([1, 2]);
+      const set2 = new Set([2, 3]);
+      expect(isEqual(set1, set2)).toBe(false);
     });
   });
 });

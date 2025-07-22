@@ -85,3 +85,19 @@ export function isNumberWithRules(str: string, options: NumberCheckOptions = {})
   const regex = new RegExp(`^${signPart}${mainPart}$`);
   return regex.test(str);
 }
+
+/**
+ * @func isScientificNotation
+ * @param {string} s - 要检查的字符串
+ * @returns {boolean} - 如果字符串符合科学计数法格式，则返回 true；否则返回 false
+ * @desc 检查给定的字符串是否为科学计数法表示的数值
+ * @example
+ * isScientificNotation("1.23e10"); // 返回 true
+ * isScientificNotation("1.23E+10"); // 返回 true
+ * isScientificNotation("abc"); // 返回 false
+ */
+export function isScientificNotation(s: string): boolean {
+  // 正则表达式匹配科学计数法
+  const regex = /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)$/;
+  return regex.test(s);
+}

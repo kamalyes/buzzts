@@ -35,4 +35,44 @@ describe('CookieWrapper 测试', () => {
     expect(cookieWrapper.get('key1')).toBeNull();
     expect(cookieWrapper.get('key2')).toBeNull();
   });
+
+  test('在设置 Cookie 时处理错误', () => {
+    const originalDocumentCookie = Object.getOwnPropertyDescriptor(Document.prototype, 'cookie');
+
+    // 确保 originalDocumentCookie 是有效的
+    if (originalDocumentCookie) {
+      Object.defineProperty(Document.prototype, 'cookie', {
+        set: () => {
+          throw new Error('Cookie set error');
+        },
+      });
+
+      console.error = jest.fn(); // 模拟 console.error
+      cookieWrapper.set('testKey', { a: 1 });
+      expect(console.error).toHaveBeenCalledWith(expect.stringContaining('Cookie set 出错:'), expect.any(Error));
+
+      // 恢复原始方法
+      Object.defineProperty(Document.prototype, 'cookie', originalDocumentCookie);
+    }
+  });
+
+  test('在获取 Cookie 时处理错误', () => {
+    const originalDocumentCookie = Object.getOwnPropertyDescriptor(Document.prototype, 'cookie');
+
+    // 确保 originalDocumentCookie 是有效的
+    if (originalDocumentCookie) {
+      Object.defineProperty(Document.prototype, 'cookie', {
+        get: () => {
+          throw new Error('Cookie get error');
+        },
+      });
+
+      console.error = jest.fn(); // 模拟 console.error
+      expect(cookieWrapper.get('testKey')).toBeNull();
+      expect(console.error).toHaveBeenCalledWith(expect.stringContaining('Cookie get 出错:'), expect.any(Error));
+
+      // 恢复原始方法
+      Object.defineProperty(Document.prototype, 'cookie', originalDocumentCookie);
+    }
+  });
 });

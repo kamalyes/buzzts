@@ -1,4 +1,4 @@
-import { randBool, randBernoulli, randPoisson, randExponential, randBinomial } from './bool';
+import { randBool, randBoolWeighted, randBernoulli, randPoisson, randExponential, randBinomial } from './bool';
 
 describe('randBool', () => {
   it('返回值是布尔类型', () => {
@@ -14,6 +14,70 @@ describe('randBool', () => {
     }
     expect(results.has(true)).toBe(true);
     expect(results.has(false)).toBe(true);
+  });
+});
+
+describe('randBoolWeighted', () => {
+  // 测试当 p 小于等于 0 时，应该返回 false
+  test('应该在 p <= 0 时返回 false', () => {
+    expect(randBoolWeighted(0)).toBe(false); // p = 0 时返回 false
+    expect(randBoolWeighted(-0.1)).toBe(false); // p = -0.1 时返回 false
+  });
+
+  // 测试当 p 大于等于 1 时，应该返回 true
+  test('应该在 p >= 1 时返回 true', () => {
+    expect(randBoolWeighted(1)).toBe(true); // p = 1 时返回 true
+    expect(randBoolWeighted(1.5)).toBe(true); // p = 1.5 时返回 true
+  });
+
+  // 测试应该大约有 p% 的概率返回 true
+  test('应该大约在 p% 的时间内返回 true', () => {
+    const p = 0.8; // 设置概率 p 为 0.8
+    const trials = 10000; // 进行 10000 次试验
+    let trueCount = 0; // 统计返回 true 的次数
+
+    for (let i = 0; i < trials; i++) {
+      if (randBoolWeighted(p)) {
+        trueCount++; // 如果返回 true，则计数加 1
+      }
+    }
+
+    const trueProbability = trueCount / trials; // 计算返回 true 的概率
+    expect(trueProbability).toBeGreaterThan(0.75); // 期望概率大于 75%
+    expect(trueProbability).toBeLessThan(0.85); // 期望概率小于 85%
+  });
+
+  // 测试应该大约有 (1-p)% 的概率返回 false
+  test('应该大约在 (1-p)% 的时间内返回 false', () => {
+    const p = 0.2; // 设置概率 p 为 0.2
+    const trials = 10000; // 进行 10000 次试验
+    let falseCount = 0; // 统计返回 false 的次数
+
+    for (let i = 0; i < trials; i++) {
+      if (!randBoolWeighted(p)) {
+        falseCount++; // 如果返回 false，则计数加 1
+      }
+    }
+
+    const falseProbability = falseCount / trials; // 计算返回 false 的概率
+    expect(falseProbability).toBeGreaterThan(0.75); // 期望概率大于 75%
+    expect(falseProbability).toBeLessThan(0.85); // 期望概率小于 85%
+  });
+
+  // 测试默认 p 值时应该返回 true 或 false
+  test('在默认 p 值下应该返回 true 或 false', () => {
+    const trials = 10000; // 进行 10000 次试验
+    let trueCount = 0; // 统计返回 true 的次数
+
+    for (let i = 0; i < trials; i++) {
+      if (randBoolWeighted()) {
+        trueCount++; // 如果返回 true，则计数加 1
+      }
+    }
+
+    const trueProbability = trueCount / trials; // 计算返回 true 的概率
+    expect(trueProbability).toBeGreaterThan(0.45); // 期望概率大于 45%
+    expect(trueProbability).toBeLessThan(0.55); // 期望概率小于 55%
   });
 });
 

@@ -75,6 +75,10 @@ describe('验证工具类测试', () => {
       expect(isEmail('test@example.com')).toBe(true);
       expect(isEmail('user.name+tag@domain.co.uk')).toBe(true);
       expect(isEmail('invalid.email@')).toBe(false);
+      expect(isEmail('')).toBe(false); // 空字符串
+      expect(isEmail('a@b.c')).toBe(true); // 最简单的有效邮箱
+      expect(isEmail('invalid@domain')).toBe(false); // 不完整的邮箱
+      expect(isEmail('invalid-email')).toBe(false); // 不符合邮箱格式
     });
 
     test('isChineseIDCardNumber - 中国身份证号', () => {
@@ -90,6 +94,12 @@ describe('验证工具类测试', () => {
       expect(isChineseIDCardNumber('110105194912310021')).toBe(false); // 正确校验位是 X
       // 无效身份证（随机15位数字）
       expect(isChineseIDCardNumber('123456789012345')).toBe(false); // ✅ 修复后通过
+      expect(isChineseIDCardNumber('')).toBe(false); // 空字符串
+      expect(isChineseIDCardNumber('123456')).toBe(false); // 过短
+      expect(isChineseIDCardNumber('11010519491231002')).toBe(false); // 无校验位
+      expect(isChineseIDCardNumber('110105194912310021')).toBe(false); // 校验位错误
+      expect(isChineseIDCardNumber('00000019491231002X')).toBe(false); // 无效地区码（全零）
+      expect(isChineseIDCardNumber('110105194913310021')).toBe(false); // 无效出生日期（超出范围）
     });
   });
 
@@ -99,6 +109,8 @@ describe('验证工具类测试', () => {
       expect(isContainChineseCharacter('测试')).toBe(true);
       expect(isContainChineseCharacter('abc测试')).toBe(true);
       expect(isContainChineseCharacter('abc123')).toBe(false);
+      expect(isContainChineseCharacter('')).toBe(false); // 空字符串
+      expect(isContainChineseCharacter('abc')).toBe(false); // 纯英文
     });
 
     test('isDoubleByte - 双字节字符', () => {
@@ -110,6 +122,8 @@ describe('验证工具类测试', () => {
     test('isChines - 纯中文', () => {
       expect(isChines('中文测试')).toBe(true);
       expect(isChines('中文123')).toBe(false);
+      expect(isChines('')).toBe(false); // 空字符串
+      expect(isChines('abc')).toBe(false); // 纯英文
     });
   });
 
@@ -125,6 +139,8 @@ describe('验证工具类测试', () => {
       expect(isHex('1a2b3c')).toBe(true);
       expect(isHex('FFFFFF')).toBe(true);
       expect(isHex('1g2h3i')).toBe(false);
+      expect(isHex('')).toBe(false); // 空字符串
+      expect(isHex('12345G')).toBe(false); // 包含无效字符
     });
   });
 });

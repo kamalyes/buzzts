@@ -16,6 +16,7 @@ import {
   getMilliseconds,
   getWeekdayCountInMonth,
   WeekdayCount,
+  toDate,
 } from './basic';
 
 describe('日期工具函数测试', () => {
@@ -159,5 +160,42 @@ describe('getWeekdayCountInMonth', () => {
   it('should return counts of zero for an empty date', () => {
     const counts = getWeekdayCountInMonth();
     expect(counts).not.toBeNull(); // 确保返回值不是 null
+  });
+});
+
+describe('toDate', () => {
+  test('传入 Date 对象且有效', () => {
+    const d = new Date('2023-06-23');
+    expect(toDate(d)?.toISOString()).toBe(d.toISOString());
+  });
+
+  test('传入 Date 对象但无效', () => {
+    expect(toDate(new Date('invalid'))).toBeNull();
+  });
+
+  test('传入时间戳（秒）', () => {
+    const ts = 1687497600; // 2023-06-23 00:00:00 UTC
+    const d = toDate(ts);
+    expect(d).not.toBeNull();
+    expect(d!.getUTCFullYear()).toBe(2023);
+    expect(d!.getUTCMonth()).toBe(5); // 0-based, 5 = June
+    expect(d!.getUTCDate()).toBe(23);
+  });
+
+  test('传入时间戳（毫秒）', () => {
+    const tsMs = 1687497600000; // 同上，毫秒
+    const d = toDate(tsMs);
+    expect(d).not.toBeNull();
+    expect(d!.getUTCFullYear()).toBe(2023);
+  });
+
+  test('传入日期字符串', () => {
+    const d = toDate('2023-06-23');
+    expect(d).not.toBeNull();
+    expect(d!.getUTCFullYear()).toBe(2023);
+  });
+
+  test('传入无效日期字符串', () => {
+    expect(toDate('invalid date')).toBeNull();
   });
 });

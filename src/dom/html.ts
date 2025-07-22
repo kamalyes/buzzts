@@ -133,20 +133,6 @@ export function removeElementAttributes(el: HTMLElement, attrs: string[]): void 
  *   display: null // 移除该样式
  * });
  */
-
-/**
- * @func setElementStyle
- * @desc 📝 批量设置元素的内联样式
- * @param {HTMLElement | null} el - 目标元素，为null时静默失败
- * @param {CSSStyleProps} styleObj - 样式键值对
- * @returns {void}
- * @example
- * setElementStyle(document.getElementById('app'), {
- *   color: 'red',
- *   fontSize: '16px',
- *   display: null // 移除该样式
- * });
- */
 export const setElementStyle = (el: HTMLElement | null, styleObj: CSSStyleProps): void => {
   if (!el) return;
 
