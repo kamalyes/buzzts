@@ -9,6 +9,7 @@ import {
   arrayToObject,
   toMappedArray,
   findValueByKey,
+  swapArrayIndex,
 } from './array';
 
 describe('appendFieldByUniqueId', () => {
@@ -296,5 +297,57 @@ describe('findValueByKey', () => {
   test('should return the whole object when returnKey is undefined', () => {
     const result = findValueByKey(items, 'id', '1', undefined);
     expect(result).toEqual({ id: '1', name: 'One' });
+  });
+});
+
+describe('swapArrayIndex', () => {
+  // 测试正常的元素交换
+  test('should swap two elements in an array', () => {
+    const arr = [1, 2, 3];
+    swapArrayIndex(arr, 0, 2);
+    expect(arr).toEqual([3, 2, 1]); // 期望结果
+  });
+
+  // 测试字符串元素的交换
+  test('should swap two string elements in an array', () => {
+    const arr2 = ['a', 'b', 'c'];
+    swapArrayIndex(arr2, 1, 2);
+    expect(arr2).toEqual(['a', 'c', 'b']); // 期望结果
+  });
+
+  // 测试布尔值元素的交换
+  test('should swap two boolean elements in an array', () => {
+    const arr3 = [true, false];
+    swapArrayIndex(arr3, 0, 1);
+    expect(arr3).toEqual([false, true]); // 期望结果
+  });
+
+  // 测试相同索引的情况，数组不应改变
+  test('should not change the array if the indices are the same', () => {
+    const arr4 = [1, 2, 3];
+    swapArrayIndex(arr4, 1, 1);
+    expect(arr4).toEqual([1, 2, 3]); // 期望结果
+  });
+
+  // 测试索引超出范围的情况，数组应保持不变
+  test('should not swap if indices are out of bounds', () => {
+    const arr5 = [1, 2, 3];
+    const originalArray = [...arr5]; // 复制原始数组
+    swapArrayIndex(arr5, -1, 3); // 无效索引
+    expect(arr5).toEqual(originalArray); // 应保持不变
+  });
+
+  // 测试空数组的情况
+  test('should handle empty arrays', () => {
+    const arr6: number[] = [];
+    swapArrayIndex(arr6, 0, 0); // 对空数组无效
+    expect(arr6).toEqual([]); // 期望结果
+  });
+
+  // 测试只有一个元素的数组
+  test('should handle arrays with one element', () => {
+    const arr7 = [42];
+    swapArrayIndex(arr7, 0, 0); // 对单元素数组无效
+    expect(arr7).toEqual([42]); // 期望结果
   });
 });

@@ -284,3 +284,36 @@ export const findValueByKey = (
   // 如果 returnKey 是 null 或 undefined，返回整个对象
   return !isNil(returnKey) ? foundItem[returnKey] : foundItem;
 };
+
+/**
+ * 交换数组中的两个元素
+ *
+ * @func swapArrayIndex
+ *
+ * @param {Array<Item>} array - 需要进行元素交换的数组，数组可以包含任意类型的元素。
+ * @param {number} i - 需要交换的第一个元素的索引。必须在数组的有效范围内。
+ * @param {number} j - 需要交换的第二个元素的索引。必须在数组的有效范围内。
+ *
+ * @returns {void} - 此函数没有返回值，直接修改原始数组。
+ *
+ * @desc 此函数将数组中索引为 `i` 和 `j` 的元素进行交换。如果 `i` 和 `j` 相同，则数组不会改变。
+ *
+ * @example
+ * const arr = [1, 2, 3];
+ * swapArrayIndex(arr, 0, 2); // arr 变为 [3, 2, 1]
+ *
+ * @example
+ * const arr2 = ['a', 'b', 'c'];
+ * swapArrayIndex(arr2, 1, 2); // arr2 变为 ['a', 'c', 'b']
+ *
+ * @example
+ * const arr3 = [true, false];
+ * swapArrayIndex(arr3, 0, 1); // arr3 变为 [false, true]
+ */
+export function swapArrayIndex<Item>(array: Item[], i: number, j: number): void {
+  if (i !== j) {
+    const temp = array[i];
+    array[i] = array[j];
+    array[j] = temp;
+  }
+}

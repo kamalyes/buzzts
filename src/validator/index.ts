@@ -5,3 +5,4 @@ export * from './number';
 export * from './string';
 export * from './net';
 export * from './other';
+export * from './url';
