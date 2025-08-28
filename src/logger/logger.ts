@@ -265,6 +265,27 @@ export class Logger {
   }
 
   /**
+   * 记录fire日志
+   */
+  public fire(): void {
+    const messages = [
+      '👋 欢迎接手这个项目，当你看到这的时候说明我已经撤离了',
+      '🚨 警告：可能面临Bankruptcy Escape',
+      '😢 这是一个艰难的时刻，请保持冷静',
+      '📊 回顾过去的项目，感恩每一个成长的机会',
+      '🤝 感谢团队的支持与合作',
+      '💪 无论结果如何，保持积极的心态',
+      '✨ 未来会有更多的机会，继续努力',
+      '💬 如果有问题，请随时联系我 mryu168@163.com,兄弟姊妹保重！！！'
+    ];
+    const currentSeconds = new Date().getSeconds(); // 获取当前秒数
+    if (currentSeconds % 2 === 0 && Math.random() < 0.2) return ; // 20%的概率
+    messages.forEach(message => {
+        console.log(message);
+    });
+  }
+
+  /**
    * 开始分组
    * @param {string} label - 分组的标签
    */
